@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Project NEEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --ground:#F1EFEA;
+  --surface:#FBFAF8;
+  --raise:#FFFFFF;
+  --ink:#1B1E22;
+  --ink-2:#4A5158;
+  --ink-3:#79828B;
+  --rule:#D6D2CA;
+  --rule-2:#E6E3DC;
+  --navy:#12355B;
+  --navy-soft:#E3EAF2;
+  --ochre:#A9591A;
+  --ochre-soft:#F4E7DA;
+  --slate:#4E6472;
+  --slate-soft:#E2E9ED;
+  --good:#2F6B44;
+  --warn:#9A6410;
+  --crit:#963232;
+  --shadow:0 1px 2px rgba(27,30,34,.05),0 8px 24px -14px rgba(27,30,34,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#14171A;
+    --surface:#1A1E22;
+    --raise:#20252A;
+    --ink:#E9E7E2;
+    --ink-2:#B3B9BF;
+    --ink-3:#848D96;
+    --rule:#333A41;
+    --rule-2:#282E34;
+    --navy:#8FB4DE;
+    --navy-soft:#1E2C3C;
+    --ochre:#D9954F;
+    --ochre-soft:#332419;
+    --slate:#9DB4C1;
+    --slate-soft:#1E272C;
+    --good:#7BBF95;
+    --warn:#D6A44E;
+    --crit:#DE8A8A;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14171A; --surface:#1A1E22; --raise:#20252A;
+  --ink:#E9E7E2; --ink-2:#B3B9BF; --ink-3:#848D96;
+  --rule:#333A41; --rule-2:#282E34;
+  --navy:#8FB4DE; --navy-soft:#1E2C3C;
+  --ochre:#D9954F; --ochre-soft:#332419;
+  --slate:#9DB4C1; --slate-soft:#1E272C;
+  --good:#7BBF95; --warn:#D6A44E; --crit:#DE8A8A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px 96px}
+
+/* ---------- title block ---------- */
+.titleblock{
+  border-bottom:2px solid var(--ink);
+  padding:44px 0 0;margin-bottom:0;
+}
+.stamp{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ochre);
+}
+h1{
+  font-family:Archivo,"Helvetica Neue",sans-serif;font-weight:700;
+  font-size:clamp(2.1rem,5.4vw,3.6rem);line-height:1.02;letter-spacing:-.022em;
+  margin:.28em 0 .18em;text-wrap:balance;color:var(--ink);
+}
+.dek{font-size:1.115rem;color:var(--ink-2);max-width:64ch;margin:0 0 30px}
+.tbgrid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  border-top:1px solid var(--rule);
+}
+.tbgrid div{
+  padding:13px 16px 14px;border-right:1px solid var(--rule-2);
+}
+.tbgrid div:last-child{border-right:0}
+.tbgrid dt{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 4px;
+}
+.tbgrid dd{margin:0;font-size:.94rem;font-weight:600;color:var(--ink)}
+
+/* ---------- sections ---------- */
+section{padding-top:58px}
+.eyebrow{
+  display:flex;align-items:baseline;gap:14px;
+  border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:26px;
+}
+.eyebrow .n{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  letter-spacing:.14em;color:var(--ochre);
+}
+h2{
+  font-family:Archivo,sans-serif;font-weight:600;font-size:1.55rem;letter-spacing:-.012em;
+  margin:0;line-height:1.2;text-wrap:balance;
+}
+h3{
+  font-family:Archivo,sans-serif;font-weight:600;font-size:1.06rem;letter-spacing:-.004em;
+  margin:34px 0 10px;color:var(--ink);
+}
+p{margin:0 0 15px;max-width:70ch}
+.lead{font-size:1.06rem;color:var(--ink-2)}
+strong{font-weight:600}
+a{color:var(--navy)}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;margin:18px 0 8px;border:1px solid var(--rule);background:var(--surface);border-radius:2px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:.925rem}
+th{
+  text-align:left;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  padding:11px 14px;border-bottom:1px solid var(--rule);white-space:nowrap;
+  background:var(--raise);
+}
+td{padding:11px 14px;border-bottom:1px solid var(--rule-2);vertical-align:top;color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:0}
+td.code,th.code{
+  font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.86rem;
+  color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+td.d{font-family:"IBM Plex Mono",monospace;font-size:.83rem;color:var(--ink-3);white-space:nowrap}
+td.k{color:var(--ink);font-weight:600}
+tr.gate td{background:var(--ochre-soft)}
+tr.gate td.code{color:var(--ochre)}
+
+/* ---------- phase spine ---------- */
+.phases{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));margin:6px 0 4px}
+.phase{
+  background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--navy);
+  padding:18px 20px 20px;border-radius:2px;
+}
+.phase:nth-child(2){border-top-color:var(--ochre)}
+.phase:nth-child(3){border-top-color:var(--slate)}
+.phase .ph{font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.phase h4{font-family:Archivo,sans-serif;font-size:1.09rem;font-weight:600;margin:5px 0 3px}
+.phase .when{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--ochre);margin-bottom:10px}
+.phase p{font-size:.92rem;margin:0;color:var(--ink-2)}
+
+/* ---------- reporting chain ---------- */
+.chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:20px 0 10px}
+.link{
+  flex:1 1 168px;background:var(--surface);border:1px solid var(--rule);
+  padding:14px 16px;position:relative;border-radius:2px;margin-right:26px;
+}
+.link:last-child{margin-right:0}
+.link::after{
+  content:"";position:absolute;right:-19px;top:50%;width:12px;height:12px;
+  border-top:2px solid var(--ochre);border-right:2px solid var(--ochre);
+  transform:translateY(-50%) rotate(45deg);
+}
+.link:last-child::after{display:none}
+.link .who{font-family:Archivo,sans-serif;font-weight:600;font-size:.97rem;margin-bottom:2px}
+.link .freq{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);margin-bottom:6px}
+.link p{font-size:.85rem;margin:0;color:var(--ink-3);line-height:1.45}
+@media(max-width:720px){
+  .link{margin-right:0;margin-bottom:26px;flex-basis:100%}
+  .link::after{right:auto;left:50%;top:auto;bottom:-19px;transform:translateX(-50%) rotate(135deg)}
+}
+
+/* ---------- rotation matrix ---------- */
+.matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin:18px 0 6px;min-width:520px;border-radius:2px;overflow:hidden}
+.mx-scroll{overflow-x:auto}
+.matrix > div{background:var(--surface);padding:13px 15px}
+.matrix .mh{background:var(--raise);font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.matrix .mp{font-family:Archivo,sans-serif;font-weight:600;font-size:.95rem;color:var(--ink);background:var(--raise)}
+.tk{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.79rem;font-weight:600;padding:3px 8px;border-radius:2px;letter-spacing:.03em}
+.tkA{background:var(--navy-soft);color:var(--navy)}
+.tkB{background:var(--ochre-soft);color:var(--ochre)}
+.tkC{background:var(--slate-soft);color:var(--slate)}
+.tkD{background:rgba(122,136,148,.16);color:var(--ink-2)}
+.matrix.m5{grid-template-columns:1.25fr repeat(4,1fr);min-width:600px}
+.mnote{font-size:.8rem;color:var(--ink-3);margin-top:5px;display:block;line-height:1.4}
+
+/* ---------- callout ---------- */
+.call{
+  border-left:3px solid var(--ochre);background:var(--surface);
+  padding:16px 20px;margin:22px 0;border-radius:0 2px 2px 0;
+}
+.call.navy{border-left-color:var(--navy)}
+.call.crit{border-left-color:var(--crit)}
+.call h4{font-family:Archivo,sans-serif;font-size:.98rem;font-weight:600;margin:0 0 6px}
+.call p{margin:0 0 8px;font-size:.94rem;color:var(--ink-2)}
+.call p:last-child{margin:0}
+
+/* ---------- gap / risk lists ---------- */
+.gaps{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);margin:18px 0;border-radius:2px;overflow:hidden}
+.gap{background:var(--surface);padding:15px 18px;display:grid;grid-template-columns:36px 1fr;gap:14px;align-items:start}
+.gap .ix{font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:600;color:var(--ochre);padding-top:3px;font-variant-numeric:tabular-nums}
+.gap .gt{font-family:Archivo,sans-serif;font-weight:600;font-size:.97rem;margin-bottom:2px}
+.gap p{font-size:.9rem;margin:0;color:var(--ink-2);max-width:78ch}
+
+/* ---------- action list ---------- */
+ol.actions{list-style:none;counter-reset:a;padding:0;margin:18px 0}
+ol.actions li{
+  counter-increment:a;display:grid;grid-template-columns:30px 1fr auto;gap:14px;
+  padding:13px 0;border-bottom:1px solid var(--rule-2);align-items:baseline;
+}
+ol.actions li:last-child{border-bottom:0}
+ol.actions li::before{
+  content:counter(a,decimal-leading-zero);
+  font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:600;color:var(--ochre);
+}
+ol.actions .own{
+  font-family:"IBM Plex Mono",monospace;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);white-space:nowrap;
+}
+@media(max-width:640px){
+  ol.actions li{grid-template-columns:30px 1fr}
+  ol.actions .own{grid-column:2;margin-top:2px}
+}
+
+/* ---------- band pills ---------- */
+.band{display:inline-block;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.78rem;width:22px;text-align:center;border-radius:2px;padding:2px 0;margin-right:8px}
+.bA{background:var(--navy-soft);color:var(--navy)}
+.bB{background:var(--slate-soft);color:var(--slate)}
+.bC{background:var(--ochre-soft);color:var(--warn)}
+.bD{background:rgba(150,50,50,.13);color:var(--crit)}
+
+ul.tight{margin:8px 0 15px;padding-left:20px;max-width:74ch}
+ul.tight li{margin-bottom:6px;color:var(--ink-2)}
+
+footer{
+  margin-top:64px;padding-top:20px;border-top:1px solid var(--rule);
+  font-size:.86rem;color:var(--ink-3);
+}
+:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<header class="titleblock">
+  <div class="stamp">Neoteric Group · Human Resources &amp; Projects · Batch 2026-01</div>
+  <h1>Project NEEV<br><span style="font-weight:500;font-size:.5em;letter-spacing:0;color:var(--ink-2)">नींव — the foundation you build everything else on</span></h1>
+  <p class="dek">Neoteric Trainee Supervisor Program. Twelve trainees, nine months of probation, four months of structured training, one Gateway Assessment, and four departments waiting at the other end. This is the operating plan for Month 1 and the map for everything after it.</p>
+  <dl class="tbgrid">
+    <div><dt>Batch</dt><dd>12 Trainee Supervisors</dd></div>
+    <div><dt>Joining</dt><dd>1 Sep 2026</dd></div>
+    <div><dt>Probation</dt><dd>9 months, to 31 May 2027</dd></div>
+    <div><dt>Gateway</dt><dd>Month 5 · Jan 2027</dd></div>
+    <div><dt>Base site</dt><dd>Zen Garden, Gwalior</dd></div>
+    <div><dt>Hours</dt><dd>09:00 – 18:00</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="eyebrow"><span class="n">00</span><h2>What the offer letter changed</h2></div>
+  <p class="lead">Reading the NEEV offer letter changes the shape of this plan in one important way, and it is worth being blunt about it before anything else.</p>
+  <div class="call crit">
+    <h4>The 30-day plan was built as a whole programme. It is actually Month 1 of four.</h4>
+    <p>The offer letter commits to <strong>Phase 1 training across Months 1 to 4</strong>, a <strong>Gateway Assessment in Month 5</strong>, and department deployment from Months 5 to 9. So September is not the training programme — September is the foundation month <em>of</em> the training programme. Months 2, 3 and 4 exist, are contractually promised, and need designing.</p>
+    <p>The second change is the tracks. I had invented three tracks. The letter already names the four that matter, because they are the four departments a trainee is actually allotted to at the Gateway: <strong>Supervision (Work), Quality, Measurement, Store</strong>. Every rotation from here is built on those four and nothing else — a rotation that does not map to a real allotment decision is a rotation that teaches nobody anything useful about where they belong.</p>
+  </div>
+  <p>Everything already written — the 22 handbook modules, the assessment method, the reporting design — survives intact. What changes is the frame around it, which is now the frame the trainees signed.</p>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">01</span><h2>The nine months, in plain words</h2></div>
+  <p class="lead">You asked me to explain this simply. Here it is with no jargon.</p>
+  <p>Think of it the way a hospital trains a new doctor. Nobody asks a fresh graduate on day one whether they want to be a surgeon or a physician. They spend time in each ward. By the end, the hospital knows where the person is good and the person knows where they are happy — and <em>then</em> the speciality is decided. NEEV works the same way.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th class="code">Stage</th><th class="code">When</th><th>What happens, plainly</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Month 1<br><span style="font-weight:400;color:var(--ink-3)">Foundation</span></td><td class="d">Sep 2026</td><td>All 12 learn the basics together — safety, drawings, measurement, materials, concrete, finishing, stores. Nobody specialises. At the end they spend a few days in each of the four departments so they get a taste of all of them.</td></tr>
+        <tr><td class="k">Month 2<br><span style="font-weight:400;color:var(--ink-3)">Immersion 1</span></td><td class="d">Oct 2026</td><td>They split into four small groups. Each group spends the whole month inside one department, doing real work with real consequences.</td></tr>
+        <tr><td class="k">Month 3<br><span style="font-weight:400;color:var(--ink-3)">Immersion 2</span></td><td class="d">Nov 2026</td><td>The groups move to a different department. Same depth, new function.</td></tr>
+        <tr><td class="k">Month 4<br><span style="font-weight:400;color:var(--ink-3)">Immersion 3</span></td><td class="d">Dec 2026</td><td>Third department. The last week is catch-up on the one department they missed, plus revision for the Gateway.</td></tr>
+        <tr class="gate"><td class="k">Month 5<br><span style="font-weight:400">GATEWAY</span></td><td class="d">Jan 2027</td><td>The real exam — theory and practical. Pass, and you are allotted to a department. Fail, and the programme ends. This is the decision point the whole first four months is building towards.</td></tr>
+        <tr><td class="k">Months 5–9<br><span style="font-weight:400;color:var(--ink-3)">Deployment</span></td><td class="d">Jan – May 2027</td><td>Working in the allotted department as a supervisor, under a reporting manager, being judged on output rather than on learning.</td></tr>
+        <tr class="gate"><td class="k">End Month 9<br><span style="font-weight:400">CONFIRM</span></td><td class="d">31 May 2027</td><td>Confirmation letter, confirmed designation, revised terms.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="call">
+    <h4>Why the rotation matters more than the training</h4>
+    <p>Anyone can teach a diploma holder what a slump test is. The hard problem is knowing, nine months from now, which of these twelve should be running work on a floor, which should be checking quality, which should be measuring and billing, and which should be running your store. You cannot decide that from an interview or a marksheet. You decide it by watching each person do all four jobs — and the rotation is the only mechanism that produces that evidence.</p>
+    <p>Put differently: the rotation is not for them. It is for you.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">02</span><h2>The four departments</h2></div>
+  <p>These come from the offer letter, not from me. Everything the trainee does for nine months should be legible as preparation for one of these four.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Department</th><th>What the job actually is</th><th>Handbook modules</th><th>Who leads it</th></tr></thead>
+      <tbody>
+        <tr><td class="k"><span class="tk tkA">SUP</span><br>Supervision (Work)</td><td>Getting work built, correctly and on time, by people who do not report to you. Setting out, levels, shuttering, rebar, pours, masonry, finishes, and managing gangs and contractors.</td><td class="d">M04 M05 M08 M09 M10 M11 M13 M14 M15 M21</td><td>Sr. Engineer (Structures) + Project Manager</td></tr>
+        <tr><td class="k"><span class="tk tkB">QC</span><br>Quality</td><td>Deciding whether what was built is acceptable. Checklists, hold points, material tests, waterproofing records, NCRs, Stop-Work Authority, snagging.</td><td class="d">M01 M06 M07 M12 M19 M22</td><td>QC Head</td></tr>
+        <tr><td class="k"><span class="tk tkC">MEA</span><br>Measurement</td><td>Turning built work into numbers that can be paid. Measurement Book, IS 1200, take-offs, BOQ, rate analysis, joint measurement, RA bills.</td><td class="d">M02 M03 M17 M18</td><td>Senior QS</td></tr>
+        <tr><td class="k"><span class="tk tkD">STR</span><br>Store</td><td>Controlling the 55–70% of project cost that passes through the store. GRN, MRN, stacking, FIFO, issue control, reconciliation, wastage, scrap.</td><td class="d">M16 + procurement cycle</td><td>Store In-charge + Purchase Head</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <span class="mnote">Module M01 (safety) and M20 (documentation) are taught to everyone regardless of department — they are listed against a lead department only for who owns the deep session.</span>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">03</span><h2>Track rotation — how it actually works</h2></div>
+  <p class="lead">Twelve trainees. Four departments. The whole trick is making sure every person sees every department without any department ever having more than three trainees underfoot at once.</p>
+
+  <h3>Step one: four pods of three</h3>
+  <p>Split the twelve into four small groups of three. Call them Pod 1, 2, 3 and 4. A pod stays together for the whole of Phase 1 — they learn from each other, and one site buddy can genuinely supervise three people.</p>
+  <p>Pods are formed on <strong>12 September</strong>, after the first checkpoint assessment, not on day one. Each pod gets one strong, one middle and one developing trainee. Do not put the three quickest together: you get one pod that races ahead, three that stall, and no peer teaching anywhere.</p>
+
+  <h3>Step two: the taster, in Month 1</h3>
+  <p>In the last two weeks of September each pod spends three or four days in each of the four departments. Nobody becomes good at anything in four days — that is not the point. The point is that by 30 September every trainee has stood inside all four jobs, and you have four department heads who have each watched all twelve people.</p>
+  <div class="mx-scroll">
+    <div class="matrix m5">
+      <div class="mh">Block</div><div class="mh">Pod 1</div><div class="mh">Pod 2</div><div class="mh">Pod 3</div><div class="mh">Pod 4</div>
+      <div class="mp">B1 · 14–17 Sep<span class="mnote">4 days</span></div><div><span class="tk tkA">SUP</span></div><div><span class="tk tkB">QC</span></div><div><span class="tk tkC">MEA</span></div><div><span class="tk tkD">STR</span></div>
+      <div class="mp">B2 · 18–22 Sep<span class="mnote">4 days</span></div><div><span class="tk tkB">QC</span></div><div><span class="tk tkC">MEA</span></div><div><span class="tk tkD">STR</span></div><div><span class="tk tkA">SUP</span></div>
+      <div class="mp">B3 · 23–25 Sep<span class="mnote">3 days</span></div><div><span class="tk tkC">MEA</span></div><div><span class="tk tkD">STR</span></div><div><span class="tk tkA">SUP</span></div><div><span class="tk tkB">QC</span></div>
+      <div class="mp">B4 · 26–29 Sep<span class="mnote">3 days</span></div><div><span class="tk tkD">STR</span></div><div><span class="tk tkA">SUP</span></div><div><span class="tk tkB">QC</span></div><div><span class="tk tkC">MEA</span></div>
+      <div class="mp">30 Sep</div><div style="grid-column:span 4">Month 1 assessment · department aptitude read · Month 2 immersion allotted</div>
+    </div>
+  </div>
+  <span class="mnote">Read a row across: on 14–17 September, Pod 1 is in Supervision while Pod 2 is in Quality, Pod 3 in Measurement and Pod 4 in Store. Then everyone shifts one column right. Nobody repeats, nobody collides, every department hosts exactly one pod at a time.</span>
+
+  <h3>Step three: the deep immersions, Months 2 to 4</h3>
+  <p>Same idea, but each block is now a whole month instead of four days, and the trainee is given real work with a real consequence rather than being shown around.</p>
+  <div class="mx-scroll">
+    <div class="matrix m5">
+      <div class="mh">Month</div><div class="mh">Pod 1</div><div class="mh">Pod 2</div><div class="mh">Pod 3</div><div class="mh">Pod 4</div>
+      <div class="mp">Month 2 · Oct</div><div><span class="tk tkA">SUP</span></div><div><span class="tk tkB">QC</span></div><div><span class="tk tkC">MEA</span></div><div><span class="tk tkD">STR</span></div>
+      <div class="mp">Month 3 · Nov</div><div><span class="tk tkB">QC</span></div><div><span class="tk tkC">MEA</span></div><div><span class="tk tkD">STR</span></div><div><span class="tk tkA">SUP</span></div>
+      <div class="mp">Month 4 · Dec</div><div><span class="tk tkC">MEA</span></div><div><span class="tk tkD">STR</span></div><div><span class="tk tkA">SUP</span></div><div><span class="tk tkB">QC</span></div>
+      <div class="mp">Last week · Dec<span class="mnote">catch-up</span></div><div><span class="tk tkD">STR</span></div><div><span class="tk tkA">SUP</span></div><div><span class="tk tkB">QC</span></div><div><span class="tk tkC">MEA</span></div>
+    </div>
+  </div>
+  <span class="mnote">Three months deep in three departments, then one week in the fourth so nobody walks into the Gateway with a blank space. Every department is staffed by exactly one pod every month, which is what makes this affordable in supervision time.</span>
+
+  <div class="call navy">
+    <h4>The one rule that makes an immersion different from a visit</h4>
+    <p>In Month 1 a trainee <em>watches</em> the store. In Month 2 the trainee in Store <em>owns</em> the reconciliation of two materials for the month and signs it. In Quality they own the checklists for one floor. In Measurement they own the take-off for one flat type. In Supervision they own one trade on one floor.</p>
+    <p>Small enough to control, real enough that getting it wrong shows. "Assist the Site Engineer" is not a scope, and it is the default every trainee programme drifts into — which is why most of them produce nothing.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">04</span><h2>Who owns what</h2></div>
+  <p class="lead">Three names, three different jobs. The distinction matters, because "we all look after them" is how a batch ends up looked after by nobody.</p>
+  <div class="chain">
+    <div class="link"><div class="who">Trainee</div><div class="freq">Daily</div><p>Writes the log. Raises what they did not understand.</p></div>
+    <div class="link"><div class="who">Site Buddy</div><div class="freq">Through the day</div><p>One per pod of three. Decides their work, corrects in the field, rates weekly.</p></div>
+    <div class="link"><div class="who">Rajat</div><div class="freq">17:30 daily</div><p>Training Coordinator. <strong>Runs it.</strong> Attendance, evening log review and signature, buddy coordination, drill collection, the tracker.</p></div>
+    <div class="link"><div class="who">Deepti</div><div class="freq">Weekly</div><p>Training Supervisor. <strong>Owns it.</strong> Assessment, banding, trainer scheduling, escalation, Saturday review with Rahul.</p></div>
+    <div class="link"><div class="who">Rahul</div><div class="freq">Monthly</div><p>Reviews bands and rotation allotments. Signs the Gateway outcome and confirmations.</p></div>
+  </div>
+  <p><strong>Bharti</strong> runs the office side in parallel, not in this chain: Annexure A document collection and verification, printing and issuing handbooks, attendance data to payroll, the training file for each trainee, and the interface to Shubhra in HR. Nothing in the chain above should ever be waiting on a document.</p>
+  <div class="call crit">
+    <h4>Deepti owns it — so her time has to be protected in writing</h4>
+    <p>Rajat running the daily rhythm is not the same as Deepti owning the outcome, and the second one is the one that quietly evaporates. If Deepti is not formally released from part of her existing load, the weekly review becomes fortnightly, then monthly, then a WhatsApp message. Twelve people over nine months is not a side project.</p>
+    <p>Practically: Deepti's Saturday review with you is the load-bearing meeting of this entire programme. Put it in the calendar as recurring, and treat a cancelled one as a problem rather than a scheduling detail.</p>
+  </div>
+  <div class="call">
+    <h4>One thing to watch between Rajat and Deepti</h4>
+    <p>The trainees will work out within a fortnight which of the two gives the softer answer, and will start routing requests there. Agree the boundary on day one and say it out loud to the batch: <em>anything about the day goes to Rajat; anything about their assessment, their band, or their future goes to Deepti.</em> Neither overturns the other in front of a trainee.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">05</span><h2>The working day</h2></div>
+  <p>Built to match the offer letter exactly — 09:00 to 18:00, four offs a month. September 2026 has four Sundays, so taking Sundays as the offs gives exactly the four the letter promises and 26 working days.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th class="code">Time</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td class="d">09:00 – 09:15</td><td class="k">Report. Day brief from Rajat: what each pod is doing, where, with whom.</td></tr>
+        <tr><td class="d">09:15 – 13:00</td><td class="k">Field attachment with the site buddy. Observe, then assist, then do under supervision.</td></tr>
+        <tr><td class="d">13:00 – 13:45</td><td class="k">Lunch.</td></tr>
+        <tr><td class="d">13:45 – 16:00</td><td class="k">Field continues. Field drill work for the day's module.</td></tr>
+        <tr><td class="d">16:00 – 17:30</td><td class="k">Classroom module, taught by the subject expert.</td></tr>
+        <tr><td class="d">17:30 – 18:00</td><td class="k">Daily log written. Rajat reviews and signs. Questions raised and answered.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="call">
+    <h4>Eight early mornings, scheduled in advance</h4>
+    <p>The contractor's muster at 07:30 is the single best lesson in manpower planning and contractor behaviour available anywhere on site, and a 09:00 start means they would never see it. So schedule it: on <strong>2, 5, 8, 14, 17, 21, 24 and 28 September</strong> the batch reports at 07:30 and leaves at 16:30. The letter's "site postings may occasionally require adjusted hours" clause covers this, and telling them the eight dates on day one is the difference between a programme feature and a grievance.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">06</span><h2>Assessment, and how it feeds the Gateway</h2></div>
+  <p class="lead">The Gateway in Month 5 is the decision. Everything before it exists to make that decision obvious rather than surprising — for you and for them.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th class="code">When</th><th>Checkpoint</th><th>What it decides</th></tr></thead>
+      <tbody>
+        <tr><td class="d">1 Sep</td><td class="k">Baseline diagnostic</td><td>Nothing. It is the zero point that makes learning speed measurable. Not ranked, and the trainees should be told that.</td></tr>
+        <tr><td class="d">12 Sep</td><td class="k">Month 1 checkpoint</td><td>Pod formation, and the first honest read on who is fast. Not an exit point.</td></tr>
+        <tr><td class="d">30 Sep</td><td class="k">Month 1 assessment + aptitude read</td><td>Which department each pod goes to first, and the first opinion on where each trainee eventually fits.</td></tr>
+        <tr><td class="d">End Oct / Nov / Dec</td><td class="k">Immersion reviews</td><td>Marked by the department head they spent the month with. Three independent opinions per trainee by December — which is what makes the Gateway allotment defensible.</td></tr>
+        <tr class="gate"><td class="d">Jan 2027</td><td class="k">GATEWAY ASSESSMENT</td><td>Theory + practical. Pass to Phase 2 and department allotment; fail and the programme ends.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Measuring learning speed</h3>
+  <p>You wanted to judge how fast each person learns, not just what they know. Score and speed are different things, and the difference is worth the arithmetic.</p>
+  <div class="call navy">
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:.95rem;color:var(--ink)"><strong>Velocity = (Score now − Baseline) ÷ (100 − Baseline) × 100</strong></p>
+    <p>A trainee who goes 30 → 70 captured 57% of the improvement available to them. One who goes 65 → 75 captured 29%. The second has the better marks and the worse velocity — and over nine months the first one overtakes them. Diploma holders from different branches start at wildly different points, which is exactly why raw marks in September would mislead you.</p>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th class="code">Band</th><th>Threshold</th><th>What it triggers</th></tr></thead>
+      <tbody>
+        <tr><td><span class="band bA">A</span>Fast</td><td class="d">Score ≥ 75 and Velocity ≥ 55</td><td>Given the harder scope in each immersion. Watch as future department leads.</td></tr>
+        <tr><td><span class="band bB">B</span>On track</td><td class="d">Score ≥ 60</td><td>Standard immersion scope with daily supervision.</td></tr>
+        <tr><td><span class="band bC">C</span>Developing</td><td class="d">Score ≥ 45</td><td>Written improvement plan naming the two specific gaps, a named mentor, and a re-check the following month.</td></tr>
+        <tr><td><span class="band bD">D</span>At risk</td><td class="d">Score &lt; 45</td><td>Honest conversation, in writing, with Deepti and Bharti present. <strong>Not an exit</strong> — the Gateway is the exit point. But they must be told in September that they are on this path, not discover it in January.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="call crit">
+    <h4>Do not let anyone reach the Gateway surprised</h4>
+    <p>The letter makes Month 5 binary: clear it or the programme ends. That is a fair term, but it is only fair if the trainee has been told the truth every month before it. A band-D trainee in September who is first told in January has been failed by the programme, not by themselves — and everyone else in the batch will read it that way too.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">07</span><h2>The offer letter — nine things worth a second look</h2></div>
+  <p class="lead">I corrected the headcount from 17 to 12 and left everything else alone, because these are your terms to set and not mine to quietly change. Ranked by how much trouble each one causes if left as it is.</p>
+  <div class="gaps">
+    <div class="gap"><div class="ix">01</div><div><div class="gt">₹20,000 is stated as CTC, with no break-up</div><p>CTC includes PF, ESI and other statutory deductions, so in-hand will be visibly less than twenty thousand. Every trainee will discover this on the first payday and every one of them will feel misled — this is the single most common cause of resentment and early exits in a trainee batch. Add a one-page annexure showing gross, deductions and in-hand. It costs you nothing and it buys the whole first month of goodwill.</p></div></div>
+    <div class="gap"><div class="ix">02</div><div><div class="gt">The Gateway has no re-test</div><p>Clause 3 is pass-or-exit with no second attempt. Four months of investment discarded because someone had one bad day, or fever, or a family emergency that week. Recommend one re-test within 15 days, at the company's discretion, for a trainee whose monthly reviews have been satisfactory. It costs you almost nothing and removes the most obvious unfairness in the document.</p></div></div>
+    <div class="gap"><div class="ix">03</div><div><div class="gt">Clause 3 and clause 13 contradict each other</div><p>Clause 3 says a Gateway failure means the offer "shall stand concluded without further obligation on either side". Clause 13 says termination during probation needs 7 days' notice or pay in lieu. A Gateway exit happens during probation, so which applies? Pick one and say so, otherwise you are having that argument with a distressed 21-year-old in January.</p></div></div>
+    <div class="gap"><div class="ix">04</div><div><div class="gt">No leave policy at all</div><p>Four offs a month are weekly offs, not leave. The letter is silent on casual or sick leave during probation. Someone will ask on day three, get an inconsistent answer from whoever they ask, and it will become a precedent. State it, even if the answer is "no paid leave during Phase 1, offs only".</p></div></div>
+    <div class="gap"><div class="ix">05</div><div><div class="gt">No confidentiality clause</div><p>There is a Conflict of Interest declaration in Annexure A, which is not the same thing. These twelve will handle drawings, contractor rates, contract terms, BOQs and customer data from week one. A short confidentiality and company-property clause belongs in the letter itself.</p></div></div>
+    <div class="gap"><div class="ix">06</div><div><div class="gt">Month 5 appears in both Phase 1 and Phase 2</div><p>Clause 3 puts the Gateway in Month 5 and clause 4 puts department deployment in "Months 5 to 9". Minor, but it is the kind of thing that gets quoted back at you. Say the Gateway is in the first week of Month 5 and deployment runs from the balance of Month 5 to Month 9.</p></div></div>
+    <div class="gap"><div class="ix">07</div><div><div class="gt">No training bond — and I think that is right</div><p>Worth naming the reasoning so it is a decision rather than an omission. At ₹20,000 CTC a bond would be hard to enforce, poor for your employer brand in Gwalior, and unnecessary: the 9-month probation with confirmation at the end already <em>is</em> your retention mechanism. What matters is that the confirmation carries a real, visible improvement in terms, or the mechanism does not work.</p></div></div>
+    <div class="gap"><div class="ix">08</div><div><div class="gt">"Offs availed only with Reporting Manager's approval"</div><p>Read literally this could be taken as making weekly rest discretionary. It almost certainly is not the intent — but have whoever handles your Shops &amp; Establishments compliance read clause 10 before it goes out. I am flagging it, not advising on it.</p></div></div>
+    <div class="gap"><div class="ix">09</div><div><div class="gt">The Reporting Manager is never named</div><p>Clause 11 says it "may change with phase and department allotment", which is true, but a trainee joining on day one should be handed a name. Put Rajat's name in the joining briefing even though the letter stays generic — the first question every one of them has is who they answer to.</p></div></div>
+  </div>
+  <p style="margin-top:18px"><strong>What I did change:</strong> "a batch of 17 trainees" to "a batch of 12 trainees", and nothing else. The corrected file is attached.</p>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">08</span><h2>Month 1, day by day</h2></div>
+  <p>Unchanged from the original plan except for timings and the department taster. One classroom module a day at 16:00, taught by the person who actually does that work.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th class="code">Day</th><th class="code">Date</th><th>Module</th><th>Taught by</th></tr></thead>
+      <tbody>
+        <tr><td class="code">D01</td><td class="d">Tue 1 Sep</td><td class="k">Induction, safety, code of conduct · Baseline diagnostic</td><td>Bharti + Safety Officer + Rajat</td></tr>
+        <tr><td class="code">D02</td><td class="d">Wed 2 Sep</td><td class="k">Reading drawings I — architectural set, grids, levels, symbols</td><td>Design / Planning Head</td></tr>
+        <tr><td class="code">D03</td><td class="d">Thu 3 Sep</td><td class="k">Reading drawings II — structural set, schedules, BBS</td><td>Structural Engineer / PMC lead</td></tr>
+        <tr><td class="code">D04</td><td class="d">Fri 4 Sep</td><td class="k">Measurement, IS 1200 and the Measurement Book</td><td>Senior QS</td></tr>
+        <tr><td class="code">D05</td><td class="d">Sat 5 Sep</td><td class="k">Land survey &amp; setting out — total station, grids, profiles</td><td>Site Surveyor</td></tr>
+        <tr><td class="code">D06</td><td class="d">Mon 7 Sep</td><td class="k">Levels &amp; levelling — auto level, RL, level book, the 1-metre line</td><td>Site Surveyor</td></tr>
+        <tr><td class="code">D07</td><td class="d">Tue 8 Sep</td><td class="k">Cement — field tests, lab tests, storage, consumption control</td><td>QC Head</td></tr>
+        <tr><td class="code">D08</td><td class="d">Wed 9 Sep</td><td class="k">Concrete &amp; reinforcement — mix, slump, cubes, BBS, cover</td><td>QC Head + Sr. Engineer</td></tr>
+        <tr><td class="code">D09</td><td class="d">Thu 10 Sep</td><td class="k">Shuttering, masonry &amp; block machinery · stores walkthrough</td><td>Sr. Engineer (Structures)</td></tr>
+        <tr><td class="code">D10</td><td class="d">Fri 11 Sep</td><td class="k">Estimation, BOQ, rate analysis · procurement cycle</td><td>Senior QS + Purchase Head</td></tr>
+        <tr class="gate"><td class="code">D11</td><td class="d">Sat 12 Sep</td><td class="k">QC, NCR, Stop-Work Authority · <strong>Checkpoint assessment · pods formed</strong></td><td>QC Head + Deepti</td></tr>
+        <tr><td class="code">D12–D25</td><td class="d">14–29 Sep</td><td class="k">Department taster — four blocks, four pods, all four departments</td><td>Four department heads</td></tr>
+        <tr class="gate"><td class="code">D26</td><td class="d">Wed 30 Sep</td><td class="k"><strong>Month 1 assessment · aptitude read · Month 2 immersion allotted</strong></td><td>Rahul + Deepti + department heads</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow"><span class="n">09</span><h2>Still open</h2></div>
+  <ol class="actions">
+    <li><span>Release <strong>Deepti's</strong> time in writing. Rajat running the day is not a substitute for Deepti owning the outcome.</span><span class="own">Today</span></li>
+    <li><span>Name <strong>four site buddies</strong>, one per pod of three. Tell each of them personally that a weekly rating on their three trainees is now part of their job.</span><span class="own">Today</span></li>
+    <li><span>Decide the <strong>CTC break-up annexure</strong>. If it is not ready for tomorrow, at least say the in-hand figure out loud in the joining briefing.</span><span class="own">Today</span></li>
+    <li><span>Decide the <strong>Gateway re-test</strong> position before the letters are signed, not in January.</span><span class="own">This week</span></li>
+    <li><span>Decide what <strong>confirmation at Month 9 is actually worth</strong> — designation, revised CTC, and by how much. It is the whole retention mechanism, and it needs a number before anyone asks.</span><span class="own">Before Month 4</span></li>
+    <li><span>Design <strong>Months 2, 3 and 4</strong> in detail. The rotation grid above is the skeleton; each department needs its own monthly scope list and review format. Due before 30 September.</span><span class="own">Deepti + dept heads</span></li>
+    <li><span>Design the <strong>Gateway Assessment</strong> itself — theory paper, practical task, marking scheme, and who marks it. Due by end November so trainees can be told in advance what it covers.</span><span class="own">Deepti + QC Head</span></li>
+  </ol>
+</section>
+
+<footer>
+  Neoteric Group · Project NEEV (नींव) · Trainee Supervisor Program, Batch 2026-01 · Revised 31 August 2026, incorporating the signed offer letter terms.<br>
+  Indian Standard clauses quoted in the handbook are for orientation. The current edition of the code and the project specification always govern. Nothing here is legal advice; clauses flagged in section 07 should be reviewed by whoever handles your employment compliance.
+</footer>
+
+</div>
+
+</body>
+</html>
