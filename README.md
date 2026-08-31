@@ -92,64 +92,80 @@ trainee first told in January has been failed by the programme, not the other wa
 
 ## What is in this repository
 
+Everything lives inside `frontend/` or `backend/` — nothing else sits at the repo root.
+Content that is browser-viewed (prototypes, programme docs) lives under `frontend/`;
+content that is generated or served server-side (handbook/tracker build scripts, their
+output, the offer letter, the API spec) lives under `backend/`.
+
 ```
-docs/
-  programme-plan.html      The full programme plan — calendar, rotation, governance,
-                           assessment design, and the offer-letter review.
-  app-prototype.html       Clickable UI prototype of the tracker app, plus the build spec.
-                           Open either file directly in a browser.
+frontend/
+  src/, public/, index.html, vite.config.js   React (Vite) SPA for the staff screens.
+  docs/
+    programme-plan.html      The full programme plan — calendar, rotation, governance,
+                             assessment design, and the offer-letter review.
+    app-prototype.html       Clickable UI prototype of the tracker app. Open in a browser.
 
-handbook/
-  modules.js               Content for the 22 technical modules. Edit here.
-  build.js                 Generates the handbook .docx from modules.js.
+backend/
+  src/, package.json                          Node/Express API. See `SPEC.md` below.
 
-tracker/
-  build_tracker.py         Generates the 11-sheet programme tracker .xlsx.
+  SPEC.md                   Build specification for the tracker app — data model, API,
+                            permissions, YouTube integration, offline behaviour, phasing.
 
-offer-letter/
-  NEEV_Offer_Letter_...docx   The issued offer letter (headcount corrected to 12).
-  review.md                   Nine clauses flagged for a decision, with reasoning.
+  handbook/
+    modules.js               Content for the 22 technical modules. Edit here.
+    build.js                 Generates the handbook .docx from modules.js.
 
-app/
-  SPEC.md                  Build specification for the tracker app — data model, API,
-                           permissions, YouTube integration, offline behaviour, phasing.
+  tracker/
+    build_tracker.py         Generates the 11-sheet programme tracker .xlsx.
 
-dist/
-  NEEV_Trainee_Supervisor_Handbook.docx    58 pages, 22 modules. Print 12 copies.
-  NEEV_Programme_Tracker.xlsx              Until the app replaces it.
+  offer-letter/
+    NEEV_Offer_Letter_...docx   The issued offer letter (headcount corrected to 12).
+    review.md                   Nine clauses flagged for a decision, with reasoning.
+
+  dist/
+    NEEV_Trainee_Supervisor_Handbook.docx    58 pages, 22 modules. Print 12 copies.
+    NEEV_Programme_Tracker.xlsx              Until the app replaces it.
 ```
 
-Built artefacts are committed to `dist/` on purpose — most people who need them do not
-run builds.
+Built artefacts are committed to `backend/dist/` on purpose — most people who need them do
+not run builds.
 
 ## Rebuilding
 
 **Handbook** (needs Node and the `docx` package):
 
 ```bash
-cd handbook
+cd backend/handbook
 npm install docx
 node build.js          # writes ../dist/NEEV_Trainee_Supervisor_Handbook.docx
 ```
 
-To change handbook content, edit `handbook/modules.js` — each module has the same six
-sections: why it matters, what you must know, what you must be able to do, a field drill,
-common site mistakes, and self-check questions. The self-check questions are the question
-bank the assessments are drawn from, so changing them changes the tests.
+To change handbook content, edit `backend/handbook/modules.js` — each module has the same
+six sections: why it matters, what you must know, what you must be able to do, a field
+drill, common site mistakes, and self-check questions. The self-check questions are the
+question bank the assessments are drawn from, so changing them changes the tests.
 
 **Tracker** (needs Python and `openpyxl`):
 
 ```bash
-cd tracker
+cd backend/tracker
 pip install openpyxl
 python build_tracker.py    # writes ../dist/NEEV_Programme_Tracker.xlsx
 ```
 
+## Running the app
+
+```bash
+cd backend && npm install && npm run dev    # API on :4000
+cd frontend && npm install && npm run dev   # SPA on :5173, proxies /api to :4000
+```
+
 ## For the developer building the app
 
-Start with **`app/SPEC.md`** and open **`docs/app-prototype.html`** in a browser next to
-it. The prototype is the reference for behaviour; the spec is the reference for structure.
-The role switcher in the prototype's top right shows what each person can and cannot do.
+Start with **`backend/SPEC.md`** and open **`frontend/docs/app-prototype.html`** in a
+browser next to it. The prototype is the reference for behaviour; the spec is the
+reference for structure. The role switcher in the prototype's top right shows what each
+person can and cannot do.
 
 Ship order matters more than completeness here — the batch is already running, and a tool
 that lands in December is a tool for Batch 02. v1 is the staff screens that replace the
