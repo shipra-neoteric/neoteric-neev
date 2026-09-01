@@ -1,8 +1,10 @@
 // Thin fetch wrapper for the backend API (see backend/SPEC.md §3).
-// In dev, Vite proxies /api to the backend (vite.config.js); in production
-// this is same-origin unless VITE_API_BASE is set.
+// In dev, Vite proxies /api to the backend (vite.config.js), so BASE defaults
+// to the relative "/api". In production, VITE_API_URL must point at the
+// deployed backend's own /api prefix (e.g. https://host.onrender.com/api) —
+// set on Vercel under Project Settings → Environment Variables.
 
-const BASE = import.meta.env.VITE_API_BASE || '';
+const BASE = import.meta.env.VITE_API_URL || '/api';
 
 let currentRole = null;
 export function setCurrentRole(roleKey) {
@@ -10,7 +12,7 @@ export function setCurrentRole(roleKey) {
 }
 
 async function request(path, options = {}) {
-  const res = await fetch(`${BASE}/api${path}`, {
+  const res = await fetch(`${BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(currentRole ? { 'X-Role': currentRole } : {}),

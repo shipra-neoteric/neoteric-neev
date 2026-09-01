@@ -11,7 +11,7 @@ import { seedIfEmpty } from "./db/seed.js";
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL }));
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
