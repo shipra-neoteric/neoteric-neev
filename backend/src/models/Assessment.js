@@ -7,6 +7,8 @@ const assessmentSchema = new mongoose.Schema({
     enum: ['baseline', 'checkpoint', 'drill', 'capstone', 'gateway'],
     required: true,
   },
+  // only set for kind: 'drill' — one drill mark per department per trainee
+  department: { type: String, enum: ['SUP', 'QC', 'MEA', 'STR'], default: null },
   written: Number,
   practical: Number,
   behavioural: Number,
@@ -15,7 +17,7 @@ const assessmentSchema = new mongoose.Schema({
   assessedAt: { type: Date, default: Date.now },
 });
 
-assessmentSchema.index({ trainee: 1, kind: 1 }, { unique: true });
+assessmentSchema.index({ trainee: 1, kind: 1, department: 1 }, { unique: true });
 
 assessmentSchema.pre('save', function computeTotal(next) {
   if (this.written != null && this.practical != null && this.behavioural != null) {

@@ -44,8 +44,8 @@ async function nextCode() {
   return 'T' + String(n).padStart(2, '0');
 }
 
-// GET /api/trainees?pod=
-router.get('/', async (req, res, next) => {
+// GET /api/trainees?pod= — the batch roster (staff only, SPEC.md §4)
+router.get('/', requireRole('coordinator', 'supervisor', 'office', 'buddy'), async (req, res, next) => {
   try {
     const { pod } = req.query;
     const filter = {};
@@ -61,30 +61,47 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+async function traineeDetail(t) {
+  const [days, attendanceDocs, logDocs] = await Promise.all([
+    Day.find({ batch: t.batch }).sort('date').lean(),
+    Attendance.find({ trainee: t._id }).lean(),
+    DailyLog.find({ trainee: t._id }).lean(),
+  ]);
+  const attByDay = Object.fromEntries(attendanceDocs.map((a) => [String(a.day), a]));
+  const logByDay = Object.fromEntries(logDocs.map((l) => [String(l.day), l]));
+
+  const history = days.map((d) => ({
+    code: d.code,
+    label: d.label,
+    attendance: attByDay[String(d._id)]?.status ?? null,
+    log_score: logByDay[String(d._id)]?.score ?? null,
+    log_note: logByDay[String(d._id)]?.note ?? '',
+  }));
+
+  return { ...(await serializeTrainee(t)), history };
+}
+
+// GET /api/trainees/me — own profile + history, for a logged-in trainee.
+// Must stay ahead of GET /:code, or "me" would be matched as a trainee code.
+router.get('/me', requireRole('trainee'), async (req, res, next) => {
+  try {
+    const t = await Trainee.findOne({ person: req.user.sub })
+      .populate('person').populate('pod').populate('buddy').lean();
+    if (!t) return res.status(404).json({ error: 'trainee record not found' });
+    res.json(await traineeDetail(t));
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /api/trainees/:code — full profile + day-by-day history, for the detail drawer
-router.get('/:code', async (req, res, next) => {
+// (staff only — a trainee sees their own via /me, not anyone else's, SPEC.md §4)
+router.get('/:code', requireRole('coordinator', 'supervisor', 'office', 'buddy'), async (req, res, next) => {
   try {
     const t = await Trainee.findOne({ code: req.params.code })
       .populate('person').populate('pod').populate('buddy').lean();
     if (!t) return res.status(404).json({ error: 'unknown trainee' });
-
-    const [days, attendanceDocs, logDocs] = await Promise.all([
-      Day.find({ batch: t.batch }).sort('date').lean(),
-      Attendance.find({ trainee: t._id }).lean(),
-      DailyLog.find({ trainee: t._id }).lean(),
-    ]);
-    const attByDay = Object.fromEntries(attendanceDocs.map((a) => [String(a.day), a]));
-    const logByDay = Object.fromEntries(logDocs.map((l) => [String(l.day), l]));
-
-    const history = days.map((d) => ({
-      code: d.code,
-      label: d.label,
-      attendance: attByDay[String(d._id)]?.status ?? null,
-      log_score: logByDay[String(d._id)]?.score ?? null,
-      log_note: logByDay[String(d._id)]?.note ?? '',
-    }));
-
-    res.json({ ...(await serializeTrainee(t)), history });
+    res.json(await traineeDetail(t));
   } catch (e) {
     next(e);
   }

@@ -40,4 +40,26 @@ router.put('/bulk', requireRole('coordinator', 'supervisor'), async (req, res, n
   }
 });
 
+// POST /api/logs — {day_id, bodyJson} — trainee submits their own log; idempotent on
+// (trainee, day) via upsert (SPEC.md §3). Score/review come later from staff via
+// PUT /bulk above — submitting again before review just replaces bodyJson/submittedAt.
+router.post('/', requireRole('trainee'), async (req, res, next) => {
+  try {
+    const { day_id, bodyJson } = req.body;
+    if (!day_id || !bodyJson) return res.status(400).json({ error: 'day_id and bodyJson required' });
+
+    const trainee = await Trainee.findOne({ person: req.user.sub });
+    if (!trainee) return res.status(404).json({ error: 'trainee record not found' });
+
+    await DailyLog.findOneAndUpdate(
+      { trainee: trainee._id, day: day_id },
+      { $set: { bodyJson, submittedAt: new Date() } },
+      { upsert: true },
+    );
+    res.status(204).end();
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

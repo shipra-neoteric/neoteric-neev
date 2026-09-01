@@ -5,8 +5,13 @@ import assessmentsRoutes from "./routes/assessments.js";
 import attendanceRoutes from "./routes/attendance.js";
 import authRoutes from "./routes/auth.js";
 import batchesRoutes from "./routes/batches.js";
+import buddyRatingsRoutes from "./routes/buddyRatings.js";
+import checklistRoutes from "./routes/checklist.js";
 import logsRoutes from "./routes/logs.js";
+import modulesRoutes from "./routes/modules.js";
+import rotationsRoutes from "./routes/rotations.js";
 import traineesRoutes from "./routes/trainees.js";
+import videosRoutes from "./routes/videos.js";
 import { connectDB } from "./db/connect.js";
 import { seedIfEmpty } from "./db/seed.js";
 import { requireAuth } from "./middleware/auth.js";
@@ -14,7 +19,9 @@ import { requireAuth } from "./middleware/auth.js";
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL }));
-app.use(express.json());
+// 10mb limit — checklist photo evidence goes through as a base64 data URL (Cloudinary
+// accepts it directly, no multipart/multer needed).
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
@@ -29,6 +36,11 @@ app.use("/api/batches", batchesRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/logs", logsRoutes);
 app.use("/api/assessments", assessmentsRoutes);
+app.use("/api/modules", modulesRoutes);
+app.use("/api/videos", videosRoutes);
+app.use("/api/checklist", checklistRoutes);
+app.use("/api/buddy-ratings", buddyRatingsRoutes);
+app.use("/api/rotations", rotationsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
