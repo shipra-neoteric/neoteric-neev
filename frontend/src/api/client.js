@@ -49,6 +49,8 @@ export async function downloadFile(path) {
 
 export const api = {
   login: (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  otpRequest: (phone) => request('/auth/otp/request', { method: 'POST', body: JSON.stringify({ phone }) }),
+  otpVerify: (phone, code) => request('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ phone, code }) }),
   health: () => request('/health'),
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),

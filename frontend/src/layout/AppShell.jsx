@@ -3,10 +3,11 @@ import { useAuth } from '../auth/AuthContext';
 import { NAV } from '../auth/roles';
 
 export default function AppShell() {
-  const { role, session, signOut } = useAuth();
+  const { role, session, isTrainee, signOut } = useAuth();
   const location = useLocation();
 
   if (!session) return <Navigate to="/login" replace />;
+  if (isTrainee) return <Navigate to="/t/today" replace />;
 
   const items = NAV.filter((item) => role.nav.includes(item.key));
   const current = items.find((i) => location.pathname.startsWith(i.path));

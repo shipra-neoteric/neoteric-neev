@@ -7,12 +7,12 @@ export const ROLES = {
   supervisor: {
     title: 'Training Supervisor',
     note: 'Owner. Full access: assessments, bands, department allotment, and the Saturday review pack.',
-    nav: ['dashboard', 'daily', 'trainees', 'assessment', 'reports'],
+    nav: ['dashboard', 'daily', 'trainees', 'assessment', 'modules', 'rotation', 'reports'],
   },
   coordinator: {
     title: 'Training Coordinator',
     note: 'Runs it. Daily entry and trainee records. Cannot set bands or allot departments.',
-    nav: ['dashboard', 'daily', 'trainees', 'reports'],
+    nav: ['dashboard', 'daily', 'trainees', 'modules', 'rotation', 'reports'],
   },
   office: {
     title: 'Office Coordinator',
@@ -21,8 +21,8 @@ export const ROLES = {
   },
   buddy: {
     title: 'Site Buddy',
-    note: 'Sees only their own pod. Submits a weekly rating on their three trainees.',
-    nav: ['dashboard', 'trainees'],
+    note: 'Sees only their own pod. Submits a weekly rating and signs checklist items.',
+    nav: ['dashboard', 'trainees', 'modules', 'buddyRating'],
   },
 };
 
@@ -31,5 +31,17 @@ export const NAV = [
   { key: 'daily', icon: '✓', label: 'Daily entry', path: '/daily' },
   { key: 'trainees', icon: '▤', label: 'Trainees', path: '/trainees' },
   { key: 'assessment', icon: '◆', label: 'Assessment', path: '/assessment' },
+  { key: 'modules', icon: '▶', label: 'Modules & videos', path: '/modules' },
+  { key: 'rotation', icon: '⇄', label: 'Rotation', path: '/rotation' },
+  { key: 'buddyRating', icon: '★', label: 'Weekly rating', path: '/buddy-rating' },
   { key: 'reports', icon: '▦', label: 'Monthly pack', path: '/reports' },
+];
+
+// Trainee nav lives in a separate mobile-first shell (TraineeShell), not the staff
+// AppShell — different device/usage pattern per SPEC.md §1.
+export const TRAINEE_NAV = [
+  { key: 'today', icon: '▶', label: 'Today', path: '/t/today' },
+  { key: 'mylog', icon: '✓', label: 'My log', path: '/t/log' },
+  { key: 'myband', icon: '◆', label: 'My band', path: '/t/band' },
+  { key: 'mychecklist', icon: '▤', label: 'Checklist', path: '/t/checklist' },
 ];

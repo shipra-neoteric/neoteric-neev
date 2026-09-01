@@ -15,7 +15,7 @@ function loadStored() {
 }
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(loadStored); // { token, name, role } | null
+  const [session, setSession] = useState(loadStored); // { token, name, role, traineeCode? } | null
 
   useEffect(() => {
     setToken(session?.token ?? null);
@@ -30,17 +30,32 @@ export function AuthProvider({ children }) {
     setSession(null);
   }
 
-  async function signIn(email, password) {
-    const { token, name, role } = await api.login(email, password);
-    const next = { token, name, role };
+  function persist(next) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     setSession(next);
+  }
+
+  async function signIn(email, password) {
+    const { token, name, role } = await api.login(email, password);
+    persist({ token, name, role });
+  }
+
+  async function requestOtp(phone) {
+    return api.otpRequest(phone); // { sent: true, devCode? } — devCode only until a real SMS provider is wired
+  }
+
+  async function verifyOtp(phone, code) {
+    const { token, name, role, traineeCode } = await api.otpVerify(phone, code);
+    persist({ token, name, role, traineeCode });
   }
 
   const value = {
     session,
     role: session ? ROLES[session.role] : null,
+    isTrainee: session?.role === 'trainee',
     signIn,
+    requestOtp,
+    verifyOtp,
     signOut,
   };
 
