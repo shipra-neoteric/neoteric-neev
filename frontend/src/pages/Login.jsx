@@ -1,17 +1,30 @@
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { ROLES } from '../auth/roles';
 
-// Placeholder until backend staff auth (email+password, SPEC.md §1) exists —
-// picks a role to sign in as instead of taking real credentials.
 export default function Login() {
-  const { roleKey, signIn } = useAuth();
+  const { session, signIn } = useAuth();
   const location = useLocation();
-  const [selected, setSelected] = useState('deepti');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  if (roleKey) {
+  if (session) {
     return <Navigate to={location.state?.from ?? '/dashboard'} replace />;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await signIn(email, password);
+    } catch {
+      setError('Invalid email or password.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -21,20 +34,19 @@ export default function Login() {
           <b>NEEV Tracker</b>
           <span>Batch 2026-01</span>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            signIn(selected);
-          }}
-        >
-          <div className="lbl">Sign in as</div>
-          <select className="sel" style={{ width: '100%', marginBottom: 14 }}
-            value={selected} onChange={(e) => setSelected(e.target.value)}>
-            {Object.entries(ROLES).map(([key, r]) => (
-              <option key={key} value={key}>{r.label}</option>
-            ))}
-          </select>
-          <button className="btn" style={{ width: '100%' }} type="submit">Sign in</button>
+        <form onSubmit={handleSubmit}>
+          {error && <div className="alert crit" style={{ marginBottom: 12 }}><span className="ai">!</span><div>{error}</div></div>}
+          <div className="lbl">Email</div>
+          <input className="sel" type="email" autoComplete="username" required
+            style={{ width: '100%', marginBottom: 12 }}
+            value={email} onChange={(e) => setEmail(e.target.value)} />
+          <div className="lbl">Password</div>
+          <input className="sel" type="password" autoComplete="current-password" required
+            style={{ width: '100%', marginBottom: 16 }}
+            value={password} onChange={(e) => setPassword(e.target.value)} />
+          <button className="btn" style={{ width: '100%' }} type="submit" disabled={loading}>
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
         </form>
       </div>
     </div>

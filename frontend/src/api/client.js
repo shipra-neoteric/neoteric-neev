@@ -6,20 +6,26 @@
 
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
-let currentRole = null;
-export function setCurrentRole(roleKey) {
-  currentRole = roleKey;
+let token = null;
+export function setToken(t) {
+  token = t;
+}
+
+let onUnauthorized = null;
+export function setUnauthorizedHandler(fn) {
+  onUnauthorized = fn;
 }
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
-      ...(currentRole ? { 'X-Role': currentRole } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
     ...options,
   });
+  if (res.status === 401) onUnauthorized?.();
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`API ${options.method || 'GET'} ${path} failed: ${res.status} ${body}`);
@@ -28,7 +34,21 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// For binary responses (the PDF report) — a plain <a href> can't carry the
+// Authorization header, so download it as a blob and hand back an object URL.
+export async function downloadFile(path) {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (res.status === 401) onUnauthorized?.();
+  if (!res.ok) throw new Error(`Download ${path} failed: ${res.status}`);
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = disposition.match(/filename="([^"]+)"/);
+  return { blob: await res.blob(), filename: match?.[1] || 'download' };
+}
+
 export const api = {
+  login: (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   health: () => request('/health'),
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),

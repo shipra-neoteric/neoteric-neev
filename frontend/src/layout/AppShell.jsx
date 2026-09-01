@@ -3,10 +3,10 @@ import { useAuth } from '../auth/AuthContext';
 import { NAV } from '../auth/roles';
 
 export default function AppShell() {
-  const { role, roleKey, signOut } = useAuth();
+  const { role, session, signOut } = useAuth();
   const location = useLocation();
 
-  if (!roleKey) return <Navigate to="/login" replace />;
+  if (!session) return <Navigate to="/login" replace />;
 
   const items = NAV.filter((item) => role.nav.includes(item.key));
   const current = items.find((i) => location.pathname.startsWith(i.path));
@@ -33,7 +33,7 @@ export default function AppShell() {
       <div className="main">
         <div className="topbar">
           <h1>{current?.label ?? 'NEEV Tracker'}</h1>
-          <label style={{ fontSize: '.8rem', color: 'var(--ink-3)' }}>{role.label}</label>
+          <label style={{ fontSize: '.8rem', color: 'var(--ink-3)' }}>{session.name} — {role.title}</label>
           <button className="btn ghost" onClick={signOut}>Sign out</button>
         </div>
         <div className="pad">

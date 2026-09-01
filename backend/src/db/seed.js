@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import Batch from '../models/Batch.js';
 import Day from '../models/Day.js';
 import Person from '../models/Person.js';
@@ -26,7 +27,26 @@ const DAYS = [
   ['D09', '2026-09-10', '10 Sep · Thu'], ['D10', '2026-09-11', '11 Sep · Fri'],
 ];
 
-export async function seedIfEmpty() {
+// Dev-only staff logins — SPEC.md §1 wants real email+password for staff, but there's
+// no admin screen yet to create/reset accounts, so these are seeded once. Rotate the
+// passwords (or replace with real accounts) before this is used for real.
+const STAFF = [
+  { name: 'Deepti', email: 'deepti@neev.local', role: 'supervisor', password: 'neev2026' },
+  { name: 'Rajat', email: 'rajat@neev.local', role: 'coordinator', password: 'neev2026' },
+  { name: 'Bharti', email: 'bharti@neev.local', role: 'office', password: 'neev2026' },
+];
+
+async function seedStaffIfMissing() {
+  for (const s of STAFF) {
+    const exists = await Person.findOne({ email: s.email });
+    if (exists) continue;
+    const passwordHash = await bcrypt.hash(s.password, 10);
+    await Person.create({ name: s.name, email: s.email, role: s.role, passwordHash });
+  }
+  console.log(`Dev staff logins (rotate before real use): ${STAFF.map((s) => `${s.email} / ${s.password}`).join(', ')}`);
+}
+
+async function seedBatchIfEmpty() {
   if (await Batch.countDocuments()) return;
 
   const batch = await Batch.create({ slug: 'b1', name: '2026-01', startDate: new Date('2026-09-01'), status: 'active' });
@@ -56,6 +76,11 @@ export async function seedIfEmpty() {
   })));
 
   console.log('Seeded dev data: 1 batch, 4 pods, 12 trainees, 10 days');
+}
+
+export async function seedIfEmpty() {
+  await seedStaffIfMissing();
+  await seedBatchIfEmpty();
 }
 
 // Exported for routes that need the single seeded batch until multi-batch support exists.

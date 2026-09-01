@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Attendance from '../models/Attendance.js';
 import Trainee from '../models/Trainee.js';
+import { requireRole } from '../middleware/auth.js';
 
 const router = Router();
 const VALID = new Set(['P', 'A', 'L', 'H']);
@@ -8,7 +9,8 @@ const VALID = new Set(['P', 'A', 'L', 'H']);
 // PUT /api/attendance/bulk — [{trainee_id, day_id, status}], one call for the whole grid
 // (SPEC.md §3: twelve separate requests over site 4G fail halfway and leave the grid
 // inconsistent — validate everything before writing anything).
-router.put('/bulk', async (req, res, next) => {
+// "Mark attendance" is Rajat/Deepti only (SPEC.md §4).
+router.put('/bulk', requireRole('coordinator', 'supervisor'), async (req, res, next) => {
   try {
     const entries = req.body;
     if (!Array.isArray(entries)) return res.status(400).json({ error: 'expected an array' });
@@ -21,7 +23,7 @@ router.put('/bulk', async (req, res, next) => {
     const trainees = await Trainee.find({ code: { $in: codes } }).select('code').lean();
     const traineeIdByCode = Object.fromEntries(trainees.map((t) => [t.code, t._id]));
 
-    const by = req.header('X-Role') || 'unknown';
+    const by = req.user.name;
     const now = new Date();
     const ops = entries
       .filter((e) => traineeIdByCode[e.trainee_id])

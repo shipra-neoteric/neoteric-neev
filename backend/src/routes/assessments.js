@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Assessment from '../models/Assessment.js';
 import Trainee from '../models/Trainee.js';
+import { requireRole } from '../middleware/auth.js';
 
 const router = Router();
 const MAX = { written: 40, practical: 30, behavioural: 30 };
@@ -10,9 +11,8 @@ function inRange(value, max) {
 }
 
 // PUT /api/assessments/checkpoint/bulk — [{trainee_id, written, practical, behavioural}]
-// Enter assessment marks is Deepti-only (SPEC.md §4) — enforced client-side for now
-// via role-based nav until real staff auth exists.
-router.put('/checkpoint/bulk', async (req, res, next) => {
+// Enter assessment marks is Deepti-only (SPEC.md §4).
+router.put('/checkpoint/bulk', requireRole('supervisor'), async (req, res, next) => {
   try {
     const entries = req.body;
     if (!Array.isArray(entries)) return res.status(400).json({ error: 'expected an array' });
@@ -27,7 +27,7 @@ router.put('/checkpoint/bulk', async (req, res, next) => {
     const trainees = await Trainee.find({ code: { $in: codes } }).select('code').lean();
     const traineeIdByCode = Object.fromEntries(trainees.map((t) => [t.code, t._id]));
 
-    const by = req.header('X-Role') || 'unknown';
+    const by = req.user.name;
     const now = new Date();
     const ops = entries
       .filter((e) => traineeIdByCode[e.trainee_id])

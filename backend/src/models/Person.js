@@ -10,6 +10,8 @@ const personSchema = new mongoose.Schema({
     required: true,
   },
   active: { type: Boolean, default: true },
+  // staff only — trainees authenticate via phone+OTP (not built yet, SPEC.md §1)
+  passwordHash: String,
 });
 
 export default mongoose.model('Person', personSchema);

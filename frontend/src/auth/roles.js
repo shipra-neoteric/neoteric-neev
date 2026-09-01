@@ -1,26 +1,27 @@
-// Role definitions and per-role nav visibility, ported from docs/app-prototype.html.
-// Real auth (email+password for staff, phone+OTP for trainees — SPEC.md §1) replaces
-// the role switcher once the backend auth endpoints exist.
+// Nav visibility per staff role (SPEC.md §4), keyed by the role string the
+// backend's JWT actually carries (Person.role — see backend/src/models/Person.js).
+// `title` is generic (not tied to a specific person) — the topbar shows the real
+// logged-in name from the session next to it.
 
 export const ROLES = {
-  deepti: {
-    label: 'Deepti — Training Supervisor',
+  supervisor: {
+    title: 'Training Supervisor',
     note: 'Owner. Full access: assessments, bands, department allotment, and the Saturday review pack.',
     nav: ['dashboard', 'daily', 'trainees', 'assessment', 'reports'],
   },
-  rajat: {
-    label: 'Rajat — Training Coordinator',
+  coordinator: {
+    title: 'Training Coordinator',
     note: 'Runs it. Daily entry and trainee records. Cannot set bands or allot departments.',
-    nav: ['dashboard', 'daily', 'trainees'],
+    nav: ['dashboard', 'daily', 'trainees', 'reports'],
+  },
+  office: {
+    title: 'Office Coordinator',
+    note: 'Office. Trainee records and joining documents. No assessment access.',
+    nav: ['dashboard', 'trainees', 'reports'],
   },
   buddy: {
-    label: 'Site Buddy',
+    title: 'Site Buddy',
     note: 'Sees only their own pod. Submits a weekly rating on their three trainees.',
-    nav: ['dashboard', 'trainees'],
-  },
-  bharti: {
-    label: 'Bharti — Office Coordinator',
-    note: 'Office. Trainee records and joining documents. No assessment access.',
     nav: ['dashboard', 'trainees'],
   },
 };

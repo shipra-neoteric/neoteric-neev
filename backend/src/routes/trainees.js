@@ -5,6 +5,7 @@ import Day from '../models/Day.js';
 import Person from '../models/Person.js';
 import Pod from '../models/Pod.js';
 import Trainee from '../models/Trainee.js';
+import { requireRole } from '../middleware/auth.js';
 import { attPct, band, getCheckpoint, logAvg, podNumber, velocity } from '../services/traineeStats.js';
 
 const router = Router();
@@ -89,8 +90,9 @@ router.get('/:code', async (req, res, next) => {
   }
 });
 
-// POST /api/trainees — trainee master: add a new trainee
-router.post('/', async (req, res, next) => {
+// POST /api/trainees — trainee master: add a new trainee. Rajat/Deepti/Bharti (README:
+// "who owns what" — all three touch trainee records).
+router.post('/', requireRole('coordinator', 'supervisor', 'office'), async (req, res, next) => {
   try {
     const { name, phone, email, branch, pod, baseline } = req.body;
     if (!name || !pod) return res.status(400).json({ error: 'name and pod are required' });
@@ -119,7 +121,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /api/trainees/:code — trainee master: edit. Baseline is write-once (SPEC.md §8).
-router.put('/:code', async (req, res, next) => {
+router.put('/:code', requireRole('coordinator', 'supervisor', 'office'), async (req, res, next) => {
   try {
     const t = await Trainee.findOne({ code: req.params.code });
     if (!t) return res.status(404).json({ error: 'unknown trainee' });

@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import DailyLog from '../models/DailyLog.js';
 import Trainee from '../models/Trainee.js';
+import { requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
 // PUT /api/logs/bulk — [{trainee_id, day_id, score, note}], staff scoring the daily
 // entry grid in front of the trainee at 17:30 (SPEC.md §7 v1).
-router.put('/bulk', async (req, res, next) => {
+// "Score and sign a daily log" is Rajat/Deepti only (SPEC.md §4).
+router.put('/bulk', requireRole('coordinator', 'supervisor'), async (req, res, next) => {
   try {
     const entries = req.body;
     if (!Array.isArray(entries)) return res.status(400).json({ error: 'expected an array' });
@@ -19,7 +21,7 @@ router.put('/bulk', async (req, res, next) => {
     const trainees = await Trainee.find({ code: { $in: codes } }).select('code').lean();
     const traineeIdByCode = Object.fromEntries(trainees.map((t) => [t.code, t._id]));
 
-    const by = req.header('X-Role') || 'unknown';
+    const by = req.user.name;
     const now = new Date();
     const ops = entries
       .filter((e) => traineeIdByCode[e.trainee_id])

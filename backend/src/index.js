@@ -3,11 +3,13 @@ import cors from "cors";
 import express from "express";
 import assessmentsRoutes from "./routes/assessments.js";
 import attendanceRoutes from "./routes/attendance.js";
+import authRoutes from "./routes/auth.js";
 import batchesRoutes from "./routes/batches.js";
 import logsRoutes from "./routes/logs.js";
 import traineesRoutes from "./routes/trainees.js";
 import { connectDB } from "./db/connect.js";
 import { seedIfEmpty } from "./db/seed.js";
+import { requireAuth } from "./middleware/auth.js";
 
 const app = express();
 
@@ -17,6 +19,10 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+app.use("/api/auth", authRoutes);
+
+app.use("/api", requireAuth);
 
 app.use("/api/trainees", traineesRoutes);
 app.use("/api/batches", batchesRoutes);
@@ -30,6 +36,11 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 4000;
+
+if (!process.env.JWT_SECRET) {
+  console.error("Failed to start: JWT_SECRET is not set");
+  process.exit(1);
+}
 
 connectDB()
   .then(() => seedIfEmpty())
