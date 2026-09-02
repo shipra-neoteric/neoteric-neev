@@ -19,7 +19,13 @@ const BRANCH = ['Civil — Govt Polytechnic Gwalior', 'Civil — MITS Polytechni
   'Mechanical — Govt Polytechnic Gwalior', 'Civil — Govt Polytechnic Bhind', 'Civil — MITS Polytechnic',
   'Civil — Govt Polytechnic Gwalior', 'Electrical — Govt Polytechnic Gwalior', 'Civil — Govt Polytechnic Datia',
   'Civil — Govt Polytechnic Gwalior', 'Civil — Govt Polytechnic Shivpuri', 'Civil — MITS Polytechnic'];
-const BUDDIES = [
+// Only used the very first time seedBatchIfEmpty ever runs, to give the 4 pods a
+// starting buddy — real buddies (created via the Users admin panel) replace these
+// immediately in any deployment that's actually been used, so this never runs again
+// once a batch exists. Deliberately NOT in the STAFF list below: an earlier version
+// pre-created these via email-existence checks, which meant deleting a dummy buddy
+// just let the next server restart silently recreate it — caught and fixed here.
+const FRESH_DB_BUDDIES = [
   { name: 'S. Chauhan', email: 'schauhan@neev.local' },
   { name: 'M. Ahirwar', email: 'mahirwar@neev.local' },
   { name: 'P. Dixit', email: 'pdixit@neev.local' },
@@ -85,15 +91,13 @@ async function seedAdminIfMissing() {
   console.log(`Seeded real admin login: ${ADMIN_EMAIL} — change this password after first login`);
 }
 
-// Dev-only staff logins — SPEC.md §1 wants real email+password for staff, but there's
-// no admin screen yet to create/reset accounts, so these are seeded once. Rotate the
-// passwords (or replace with real accounts) before this is used for real.
+// Dev-only staff logins — SPEC.md §1 wants real email+password for staff. There's now
+// a real Users admin panel to create/reset accounts, so this only matters for local
+// dev — rotate or delete these before anything resembling real use.
 const STAFF = [
   { name: 'Deepti', email: 'deepti@neev.local', role: 'supervisor', password: 'neev2026' },
   { name: 'Rajat', email: 'rajat@neev.local', role: 'coordinator', password: 'neev2026' },
   { name: 'Bharti', email: 'bharti@neev.local', role: 'office', password: 'neev2026' },
-  // buddies are staff (site engineers), not trainees — email+password, same as above
-  ...BUDDIES.map((b) => ({ name: b.name, email: b.email, role: 'buddy', password: 'neev2026' })),
 ];
 
 async function seedStaffIfMissing() {
@@ -111,8 +115,9 @@ async function seedBatchIfEmpty() {
 
   const batch = await Batch.create({ slug: 'b1', name: '2026-01', startDate: new Date('2026-09-01'), status: 'active' });
 
-  // Buddies were already created (with login) by seedStaffIfMissing, which runs first.
-  const buddyPersons = await Promise.all(BUDDIES.map((b) => Person.findOne({ email: b.email })));
+  const buddyPasswordHash = await bcrypt.hash('neev2026', 10);
+  const buddyPersons = await Person.insertMany(
+    FRESH_DB_BUDDIES.map((b) => ({ name: b.name, email: b.email, role: 'buddy', passwordHash: buddyPasswordHash })));
 
   const pods = await Pod.insertMany(
     buddyPersons.map((buddy, i) => ({ batch: batch._id, name: `Pod ${i + 1}`, buddy: buddy._id })));
@@ -137,18 +142,6 @@ async function seedBatchIfEmpty() {
 
   console.log(`Dev trainee OTP logins (rotate before real use): phone ${PHONES[0]}..${PHONES.at(-1)}, code printed on request`);
   console.log('Seeded dev data: 1 batch, 4 pods, 12 trainees, 10 days');
-}
-
-// Covers databases seeded before buddies had logins (they used to be created without
-// email/password) — matches by name since that's all the old seed set on them.
-async function backfillBuddyLogins() {
-  for (const b of BUDDIES) {
-    const person = await Person.findOne({ name: b.name, role: 'buddy' });
-    if (!person || person.passwordHash) continue;
-    person.email = b.email;
-    person.passwordHash = await bcrypt.hash('neev2026', 10);
-    await person.save();
-  }
 }
 
 async function seedModulesIfEmpty() {
@@ -178,7 +171,6 @@ export async function seedIfEmpty() {
   await seedAdminIfMissing();
   await seedStaffIfMissing();
   await seedBatchIfEmpty();
-  await backfillBuddyLogins();
   await seedModulesIfEmpty();
   await seedRotationIfEmpty();
 }
