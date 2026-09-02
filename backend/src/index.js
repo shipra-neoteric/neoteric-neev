@@ -9,6 +9,7 @@ import buddyRatingsRoutes from "./routes/buddyRatings.js";
 import checklistRoutes from "./routes/checklist.js";
 import logsRoutes from "./routes/logs.js";
 import modulesRoutes from "./routes/modules.js";
+import podsRoutes from "./routes/pods.js";
 import rotationsRoutes from "./routes/rotations.js";
 import traineesRoutes from "./routes/trainees.js";
 import usersRoutes from "./routes/users.js";
@@ -42,6 +43,7 @@ app.use("/api/videos", videosRoutes);
 app.use("/api/checklist", checklistRoutes);
 app.use("/api/buddy-ratings", buddyRatingsRoutes);
 app.use("/api/rotations", rotationsRoutes);
+app.use("/api/pods", podsRoutes);
 app.use("/api/users", usersRoutes);
 
 app.use((err, req, res, next) => {

@@ -1,7 +1,9 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import AlertBanner from '../components/AlertBanner';
+import PodBuddyPanel from '../components/PodBuddyPanel';
 import { BandBadge } from '../components/StatusBadge';
 import TraineeDrawer from '../components/TraineeDrawer';
 import { useTheme } from '../context/ThemeContext';
@@ -9,6 +11,7 @@ import { btnPrimaryBase, primaryStyle } from '../ui/classes';
 
 export default function Trainees() {
   const { getThemeColor } = useTheme();
+  const { can } = useAuth();
   const [trainees, setTrainees] = useState(null);
   const [error, setError] = useState(null);
   const [openCode, setOpenCode] = useState(undefined); // undefined = closed, null = create, "T01" = view/edit
@@ -32,6 +35,8 @@ export default function Trainees() {
 
   return (
     <div>
+      {can('trainees', 'edit') && <PodBuddyPanel />}
+
       <div className="flex justify-end mb-3">
         <button onClick={() => setOpenCode(null)} className={`flex items-center gap-1.5 ${btnPrimaryBase}`} style={primaryStyle(getThemeColor())}>
           <Plus className="w-4 h-4" /> Add trainee
