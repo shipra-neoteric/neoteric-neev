@@ -13,7 +13,7 @@ import ThemedSelect from './theme/ThemedSelect';
 const PODS = [1, 2, 3, 4];
 const STATUSES = ['active', 'exited', 'gateway_passed', 'confirmed'];
 
-const emptyForm = { name: '', phone: '', email: '', branch: '', pod: 1, baseline: '', status: 'active' };
+const emptyForm = { name: '', phone: '', email: '', password: '', branch: '', pod: 1, baseline: '', status: 'active' };
 
 export default function TraineeDrawer({ code, onClose, onSaved }) {
   const { getThemeColor } = useTheme();
@@ -55,6 +55,7 @@ export default function TraineeDrawer({ code, onClose, onSaved }) {
         pod: Number(form.pod),
         baseline: form.baseline === '' ? null : Number(form.baseline),
       };
+      if (form.password) body.password = form.password;
       if (isCreate) {
         await api.post('/trainees', body);
       } else {
@@ -133,6 +134,11 @@ export default function TraineeDrawer({ code, onClose, onSaved }) {
               <label className={labelClass}>Email</label>
               <input className={inputClass()} value={form.email} onChange={(e) => set('email', e.target.value)} />
             </div>
+          </div>
+          <div>
+            <label className={labelClass}>{isCreate ? 'Password (optional — enables email login)' : 'New password (leave blank to keep current)'}</label>
+            <input className={inputClass()} type="password" value={form.password} onChange={(e) => set('password', e.target.value)} />
+            <div className="text-xs text-gray-400 mt-1">Phone + OTP always works regardless. This adds email + password as a second way in.</div>
           </div>
           <div>
             <label className={labelClass}>Branch / college</label>

@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { Router } from 'express';
 import Assessment from '../models/Assessment.js';
 import Attendance from '../models/Attendance.js';
@@ -115,14 +116,19 @@ router.get('/:code', requirePermission('trainees', 'view'), async (req, res, nex
 // "who owns what" — all three touch trainee records).
 router.post('/', requirePermission('trainees', 'create'), async (req, res, next) => {
   try {
-    const { name, phone, email, branch, pod, baseline } = req.body;
+    const { name, phone, email, password, branch, pod, baseline } = req.body;
     if (!name || !pod) return res.status(400).json({ error: 'name and pod are required' });
+    if (password && password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
+    if (password && !email) return res.status(400).json({ error: 'email is required to set a password' });
 
     const podDoc = await resolvePod(pod);
     if (!podDoc) return res.status(400).json({ error: `unknown pod ${pod}` });
 
     const code = await nextCode();
-    const person = await Person.create({ name, phone: phone || undefined, email: email || undefined, role: 'trainee' });
+    const passwordHash = password ? await bcrypt.hash(password, 10) : undefined;
+    const person = await Person.create({
+      name, phone: phone || undefined, email: email || undefined, passwordHash, role: 'trainee',
+    });
     const trainee = await Trainee.create({
       code,
       person: person._id,
@@ -147,7 +153,8 @@ router.put('/:code', requirePermission('trainees', 'edit'), async (req, res, nex
     const t = await Trainee.findOne({ code: req.params.code });
     if (!t) return res.status(404).json({ error: 'unknown trainee' });
 
-    const { name, phone, email, branch, pod, status, baseline } = req.body;
+    const { name, phone, email, password, branch, pod, status, baseline } = req.body;
+    if (password && password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
 
     if (baseline != null) {
       if (t.baselineScore != null && baseline !== t.baselineScore) {
@@ -165,11 +172,12 @@ router.put('/:code', requirePermission('trainees', 'edit'), async (req, res, nex
     }
     await t.save();
 
-    if (name != null || phone != null || email != null) {
+    if (name != null || phone != null || email != null || password) {
       const update = {};
       if (name != null) update.name = name;
       if (phone != null) update.phone = phone;
       if (email != null) update.email = email;
+      if (password) update.passwordHash = await bcrypt.hash(password, 10);
       await Person.findByIdAndUpdate(t.person, update);
     }
 

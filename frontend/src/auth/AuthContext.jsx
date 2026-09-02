@@ -36,8 +36,8 @@ export function AuthProvider({ children }) {
   }
 
   async function signIn(email, password) {
-    const { token, id, name, role, permissions } = await api.login(email, password);
-    persist({ token, id, name, role, permissions });
+    const { token, id, name, role, traineeCode, permissions } = await api.login(email, password);
+    persist({ token, id, name, role, traineeCode, permissions });
   }
 
   async function requestOtp(phone) {

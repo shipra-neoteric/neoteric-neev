@@ -5,7 +5,9 @@ import { useTheme } from '../context/ThemeContext';
 import AlertBanner from '../components/AlertBanner';
 import { btnPrimaryBase, inputClass, label as labelClass, primaryStyle } from '../ui/classes';
 
-function StaffLogin() {
+// Reused for both the Staff tab and the Trainee tab's "Password" method — the backend
+// login endpoint doesn't discriminate by role, it just checks whoever has a password set.
+function EmailPasswordLogin() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,7 +45,7 @@ function StaffLogin() {
   );
 }
 
-function TraineeLogin() {
+function OtpLogin() {
   const { requestOtp, verifyOtp } = useAuth();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -114,6 +116,26 @@ function TraineeLogin() {
   );
 }
 
+function TraineeLogin() {
+  const [method, setMethod] = useState('otp'); // 'otp' | 'password'
+
+  return (
+    <div>
+      <div className="flex gap-4 mb-5 text-sm">
+        {[['otp', 'Phone + OTP'], ['password', 'Email + password']].map(([m, label]) => (
+          <button key={m} type="button" onClick={() => setMethod(m)}
+            className={`pb-1 border-b-2 transition-colors ${
+              method === m ? 'border-orange-500 text-gray-900 dark:text-white font-medium' : 'border-transparent text-gray-400'
+            }`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {method === 'otp' ? <OtpLogin /> : <EmailPasswordLogin />}
+    </div>
+  );
+}
+
 function PrimaryButton({ loading, children }) {
   const { getThemeColor } = useTheme();
   return (
@@ -157,7 +179,7 @@ export default function Login() {
           ))}
         </div>
 
-        {tab === 'staff' ? <StaffLogin /> : <TraineeLogin />}
+        {tab === 'staff' ? <EmailPasswordLogin /> : <TraineeLogin />}
       </div>
     </div>
   );

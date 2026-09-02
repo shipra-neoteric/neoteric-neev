@@ -10,7 +10,9 @@ import { sendOtp } from '../services/sms.js';
 
 const router = Router();
 
-// POST /api/auth/login — email + password for staff (SPEC.md §1).
+// POST /api/auth/login — email + password. Staff always have this; trainees can
+// optionally have it too now (set from the trainee master form), alongside phone+OTP
+// below — same account either way, whichever the person has credentials for.
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -20,14 +22,18 @@ router.post('/login', async (req, res, next) => {
     const ok = person?.passwordHash && await bcrypt.compare(password, person.passwordHash);
     if (!ok) return res.status(401).json({ error: 'invalid credentials' });
 
+    const isTrainee = person.role === 'trainee';
+    const trainee = isTrainee ? await Trainee.findOne({ person: person._id }) : null;
+
     const token = jwt.sign(
-      { sub: person._id.toString(), name: person.name, role: person.role },
+      { sub: person._id.toString(), name: person.name, role: person.role, traineeCode: trainee?.code },
       process.env.JWT_SECRET,
-      { expiresIn: '12h' },
+      { expiresIn: isTrainee ? '30d' : '12h' }, // trainees stay signed in on their own phone
     );
     res.json({
       token, id: person._id.toString(), name: person.name, role: person.role,
-      permissions: resolveAllPermissions(person),
+      traineeCode: trainee?.code,
+      permissions: isTrainee ? undefined : resolveAllPermissions(person),
     });
   } catch (e) {
     next(e);
