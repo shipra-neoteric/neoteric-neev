@@ -1,4 +1,6 @@
+import { X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../api/client';
 
 let apiPromise = null;
@@ -57,20 +59,25 @@ export default function YouTubePlayer({ video, onClose }) {
     };
   }, [video._id, video.youtubeId]);
 
-  return (
-    <div className="scrim on" onClick={onClose}>
-      <div className="modal on" onClick={(e) => e.stopPropagation()}>
-        <div className="dhead">
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '1rem' }}>{video.title ?? video.youtubeId}</h2>
-            <div className="sub" style={{ margin: '2px 0 0' }}>{video.channel}</div>
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in" />
+      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-200 dark:border-gray-700">
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">{video.title ?? video.youtubeId}</h2>
+            <div className="text-xs text-gray-400 mt-0.5">{video.channel}</div>
           </div>
-          <button className="x" onClick={onClose} aria-label="Close">×</button>
+          <button onClick={onClose} aria-label="Close"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0 ml-3">
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <div style={{ padding: 15 }}>
-          <div ref={containerRef} style={{ aspectRatio: '16/9', width: '100%' }} />
+        <div className="p-4">
+          <div ref={containerRef} className="aspect-video w-full" />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

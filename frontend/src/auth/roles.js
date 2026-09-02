@@ -1,3 +1,8 @@
+import {
+  Award, CheckSquare, ClipboardCheck, FileText, LayoutDashboard,
+  ListChecks, PlayCircle, RefreshCw, Star, Users,
+} from 'lucide-react';
+
 // Nav visibility per staff role (SPEC.md §4), keyed by the role string the
 // backend's JWT actually carries (Person.role — see backend/src/models/Person.js).
 // `title` is generic (not tied to a specific person) — the topbar shows the real
@@ -27,21 +32,21 @@ export const ROLES = {
 };
 
 export const NAV = [
-  { key: 'dashboard', icon: '▣', label: 'Dashboard', path: '/dashboard' },
-  { key: 'daily', icon: '✓', label: 'Daily entry', path: '/daily' },
-  { key: 'trainees', icon: '▤', label: 'Trainees', path: '/trainees' },
-  { key: 'assessment', icon: '◆', label: 'Assessment', path: '/assessment' },
-  { key: 'modules', icon: '▶', label: 'Modules & videos', path: '/modules' },
-  { key: 'rotation', icon: '⇄', label: 'Rotation', path: '/rotation' },
-  { key: 'buddyRating', icon: '★', label: 'Weekly rating', path: '/buddy-rating' },
-  { key: 'reports', icon: '▦', label: 'Monthly pack', path: '/reports' },
+  { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+  { key: 'daily', icon: CheckSquare, label: 'Daily entry', path: '/daily' },
+  { key: 'trainees', icon: Users, label: 'Trainees', path: '/trainees' },
+  { key: 'assessment', icon: ClipboardCheck, label: 'Assessment', path: '/assessment' },
+  { key: 'modules', icon: PlayCircle, label: 'Modules & videos', path: '/modules' },
+  { key: 'rotation', icon: RefreshCw, label: 'Rotation', path: '/rotation' },
+  { key: 'buddyRating', icon: Star, label: 'Weekly rating', path: '/buddy-rating' },
+  { key: 'reports', icon: FileText, label: 'Monthly pack', path: '/reports' },
 ];
 
 // Trainee nav lives in a separate mobile-first shell (TraineeShell), not the staff
 // AppShell — different device/usage pattern per SPEC.md §1.
 export const TRAINEE_NAV = [
-  { key: 'today', icon: '▶', label: 'Today', path: '/t/today' },
-  { key: 'mylog', icon: '✓', label: 'My log', path: '/t/log' },
-  { key: 'myband', icon: '◆', label: 'My band', path: '/t/band' },
-  { key: 'mychecklist', icon: '▤', label: 'Checklist', path: '/t/checklist' },
+  { key: 'today', icon: PlayCircle, label: 'Today', path: '/t/today' },
+  { key: 'mylog', icon: CheckSquare, label: 'My log', path: '/t/log' },
+  { key: 'myband', icon: Award, label: 'My band', path: '/t/band' },
+  { key: 'mychecklist', icon: ListChecks, label: 'Checklist', path: '/t/checklist' },
 ];

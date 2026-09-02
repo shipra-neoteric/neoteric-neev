@@ -1,3 +1,37 @@
-html { color-scheme: light dark; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  color-scheme: light dark;
+  font-family: "Inter", system-ui, sans-serif;
+}
 * { box-sizing: border-box; }
 body { margin: 0; }
+
+/* Custom scrollbar utilities (style guide §18) */
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(18, 53, 91, 0.3); border-radius: 4px; }
+.custom-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(18, 53, 91, 0.6); }
+.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(143, 180, 222, 0.3); }
+.dark .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(143, 180, 222, 0.6); }
+
+.custom-horizontal-scrollbar::-webkit-scrollbar { height: 6px; }
+.custom-horizontal-scrollbar::-webkit-scrollbar-thumb { background: rgba(18, 53, 91, 0.3); border-radius: 3px; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+* { scrollbar-width: thin; }
+
+/* Drawer / dropdown entrance animations (style guide §17) */
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+
+/* Number inputs: no native spinner (style guide §14) */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
+.swal2-container { z-index: 99999 !important; }

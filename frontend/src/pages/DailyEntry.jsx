@@ -1,11 +1,32 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import AlertBanner from '../components/AlertBanner';
+import ThemedSelect from '../components/theme/ThemedSelect';
+import { useTheme } from '../context/ThemeContext';
+import { btnPrimaryBase, inputClass, primaryStyle } from '../ui/classes';
 
 const BATCH_ID = 'b1';
 const ATT_CODES = ['P', 'A', 'L', 'H'];
+const ATT_ON_CLASS = {
+  P: 'bg-green-600 border-green-600 text-white',
+  A: 'bg-red-600 border-red-600 text-white',
+  L: 'bg-amber-500 border-amber-500 text-white',
+  H: 'bg-slate-500 border-slate-500 text-white',
+};
 const LOG_SCORES = [1, 2, 3, 4, 5];
 
+function Chip({ active, activeClass, onClick, style, children }) {
+  return (
+    <button type="button" onClick={onClick} style={active ? style : undefined}
+      className={`w-7 h-7 text-xs font-semibold rounded border transition-colors
+        ${active ? activeClass : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-gray-400'}`}>
+      {children}
+    </button>
+  );
+}
+
 export default function DailyEntry() {
+  const { getThemeColor } = useTheme();
   const [days, setDays] = useState(null);
   const [dayCode, setDayCode] = useState(null);
   const [rows, setRows] = useState(null);
@@ -63,62 +84,67 @@ export default function DailyEntry() {
     }
   }
 
-  if (error) return <div className="alert crit"><span className="ai">!</span><div>{error}</div></div>;
-  if (!days || !rows) return <div className="sub">Loading…</div>;
+  if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
+  if (!days || !rows) return <div className="text-sm text-gray-400">Loading…</div>;
 
   const done = rows.filter((r) => r.attendance && r.log_score).length;
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
-        <select className="sel" value={dayCode} onChange={(e) => setDayCode(e.target.value)}>
-          {days.map((d) => <option key={d.code} value={d.code}>{d.code} · {d.label}</option>)}
-        </select>
-        <div className="prog" style={{ width: 150 }}>
-          <i style={{ width: `${(done / rows.length) * 100}%` }} />
+      <div className="flex items-center gap-4 flex-wrap mb-4">
+        <div className="w-56">
+          <ThemedSelect value={dayCode} onChange={setDayCode}
+            options={days.map((d) => ({ value: d.code, label: `${d.code} · ${d.label}` }))} />
         </div>
-        <span className="mono sub" style={{ margin: 0 }}>{done} of {rows.length} complete</span>
-        <div style={{ flex: 1 }} />
-        {saved && <span className="sub" style={{ margin: 0 }}>Saved</span>}
-        <button className="btn" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save day'}</button>
+        <div className="w-36 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${(done / rows.length) * 100}%`, backgroundColor: getThemeColor() }} />
+        </div>
+        <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{done} of {rows.length} complete</span>
+        <div className="flex-1" />
+        {saved && <span className="text-xs text-gray-500 dark:text-gray-400">Saved</span>}
+        <button onClick={save} disabled={saving} className={btnPrimaryBase} style={primaryStyle(getThemeColor())}>
+          {saving ? 'Saving…' : 'Save day'}
+        </button>
       </div>
 
-      <div className="tw">
-        <table>
+      <div className="overflow-x-auto custom-horizontal-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+        <table className="w-full text-sm">
           <thead>
-            <tr>
-              <th style={{ width: 34 }} />
-              <th>Trainee</th><th>Pod</th>
-              <th style={{ width: 150 }}>Attendance</th>
-              <th style={{ width: 190 }}>Log quality</th>
-              <th>Note</th>
+            <tr className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+              <th className="px-3 py-2 text-left w-10"></th>
+              <th className="px-3 py-2 text-left">Trainee</th>
+              <th className="px-3 py-2 text-left hidden sm:table-cell">Pod</th>
+              <th className="px-3 py-2 text-left">Attendance</th>
+              <th className="px-3 py-2 text-left">Log quality</th>
+              <th className="px-3 py-2 text-left hidden md:table-cell">Note</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.trainee_id}>
-                <td className="mono sub" style={{ margin: 0 }}>{r.trainee_id}</td>
-                <td className="name">{r.name}</td>
-                <td className="pod">P{r.pod}</td>
-                <td>
-                  <div className="chipbar">
+              <tr key={r.trainee_id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <td className="px-3 py-2 text-xs font-mono text-gray-400">{r.trainee_id}</td>
+                <td className="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{r.name}</td>
+                <td className="px-3 py-2 text-xs font-mono text-gray-400 hidden sm:table-cell">P{r.pod}</td>
+                <td className="px-3 py-2">
+                  <div className="flex gap-1">
                     {ATT_CODES.map((a) => (
-                      <button key={a}
-                        className={`chip ${r.attendance === a ? 'on' : ''} ${a === 'A' ? 'a' : a === 'L' ? 'l' : ''}`}
-                        onClick={() => setAtt(r.trainee_id, a)}>{a}</button>
+                      <Chip key={a} active={r.attendance === a} activeClass={ATT_ON_CLASS[a]} onClick={() => setAtt(r.trainee_id, a)}>{a}</Chip>
                     ))}
                   </div>
                 </td>
-                <td>
-                  <div className="chipbar">
+                <td className="px-3 py-2">
+                  <div className="flex gap-1">
                     {LOG_SCORES.map((n) => (
-                      <button key={n} className={`chip ${r.log_score === n ? 'on' : ''}`}
-                        onClick={() => setLog(r.trainee_id, n)}>{n}</button>
+                      <Chip key={n} active={r.log_score === n}
+                        activeClass="text-white border-transparent" onClick={() => setLog(r.trainee_id, n)}
+                        style={r.log_score === n ? { backgroundColor: getThemeColor() } : undefined}>
+                        {n}
+                      </Chip>
                     ))}
                   </div>
                 </td>
-                <td>
-                  <input className="sel" style={{ width: '100%', minWidth: 150 }}
+                <td className="px-3 py-2 hidden md:table-cell">
+                  <input className={inputClass()} style={{ minWidth: 150 }}
                     value={r.log_note ?? ''}
                     onChange={(e) => {
                       const note = e.target.value;

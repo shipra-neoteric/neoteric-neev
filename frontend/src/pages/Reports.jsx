@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { downloadFile } from '../api/client';
+import AlertBanner from '../components/AlertBanner';
+import { useTheme } from '../context/ThemeContext';
+import { btnPrimaryBase, card, inputClass, label as labelClass, primaryStyle } from '../ui/classes';
 
 const BATCH_ID = 'b1';
 
 export default function Reports() {
+  const { getThemeColor } = useTheme();
   const [month, setMonth] = useState('2026-09');
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,18 +31,17 @@ export default function Reports() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 420 }}>
-      <h3>Monthly pack</h3>
-      <div className="sub" style={{ marginBottom: 14 }}>
+    <div className={card + ' max-w-md'}>
+      <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Monthly pack</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Band distribution, needs-attention alerts, and the full trainee table — one PDF
         for the Saturday review with the CEO (SPEC.md §7 v1).
-      </div>
-      {error && <div className="alert crit" style={{ marginBottom: 12 }}><span className="ai">!</span><div>{error}</div></div>}
-      <div className="lbl">Month</div>
-      <input className="sel" type="month" value={month}
-        onChange={(e) => setMonth(e.target.value)}
-        style={{ marginBottom: 14, display: 'block' }} />
-      <button className="btn" onClick={handleDownload} disabled={downloading}>
+      </p>
+      {error && <div className="mb-3"><AlertBanner level="crit">{error}</AlertBanner></div>}
+      <label className={labelClass}>Month</label>
+      <input className={inputClass()} style={{ marginBottom: 16 }} type="month" value={month}
+        onChange={(e) => setMonth(e.target.value)} />
+      <button onClick={handleDownload} disabled={downloading} className={btnPrimaryBase} style={primaryStyle(getThemeColor())}>
         {downloading ? 'Preparing…' : 'Download PDF'}
       </button>
     </div>

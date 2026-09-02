@@ -1,6 +1,12 @@
+import { User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import BandChip from './BandChip';
+import { useTheme } from '../context/ThemeContext';
+import { btnPrimaryBase, card, inputClass, label as labelClass, microLabel, primaryStyle } from '../ui/classes';
+import AlertBanner from './AlertBanner';
+import { BandBadge } from './StatusBadge';
+import Drawer from './Drawer';
+import ThemedSelect from './theme/ThemedSelect';
 
 const PODS = [1, 2, 3, 4];
 const STATUSES = ['active', 'exited', 'gateway_passed', 'confirmed'];
@@ -8,6 +14,7 @@ const STATUSES = ['active', 'exited', 'gateway_passed', 'confirmed'];
 const emptyForm = { name: '', phone: '', email: '', branch: '', pod: 1, baseline: '', status: 'active' };
 
 export default function TraineeDrawer({ code, onClose, onSaved }) {
+  const { getThemeColor } = useTheme();
   const isCreate = !code;
   const [detail, setDetail] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -27,7 +34,7 @@ export default function TraineeDrawer({ code, onClose, onSaved }) {
         branch: d.branch ?? '', pod: d.pod, baseline: d.baseline ?? '', status: d.status,
       });
     }).catch((e) => setError(e.message));
-  }, [code]);
+  }, [code, isCreate]);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -61,117 +68,113 @@ export default function TraineeDrawer({ code, onClose, onSaved }) {
   const baselineLocked = !isCreate && detail?.baseline != null;
 
   return (
-    <>
-      <div className="scrim on" onClick={onClose} />
-      <aside className="drawer on" role="dialog" aria-label="Trainee">
-        <div className="dhead">
-          <div style={{ flex: 1 }}>
-            <h2>{isCreate ? 'Add trainee' : (detail?.name ?? code)}</h2>
-            {!isCreate && detail && (
-              <div className="sub" style={{ margin: '2px 0 0' }}>{code} · Pod {detail.pod} · {detail.branch}</div>
+    <Drawer
+      title={isCreate ? 'Add trainee' : (detail?.name ?? code)}
+      subtitle={!isCreate && detail ? `${code} · Pod ${detail.pod} · ${detail.branch}` : undefined}
+      icon={User}
+      onClose={onClose}
+    >
+      {error && <AlertBanner level="crit">{error}</AlertBanner>}
+
+      {!isCreate && detail && (
+        <>
+          <div className="flex items-center gap-3 flex-wrap">
+            <BandBadge band={detail.band} />
+            <span className="text-xs text-gray-500 dark:text-gray-400">Site buddy: {detail.buddy ?? '—'}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className={card}>
+              <div className={microLabel}>Checkpoint</div>
+              <div className="text-2xl font-black text-gray-900 dark:text-white">{detail.checkpoint ?? '—'}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {detail.checkpoint != null
+                  ? `Written ${detail.written} + Practical ${detail.practical} + Behavioural ${detail.behavioural}`
+                  : 'Not yet assessed'}
+              </div>
+            </div>
+            <div className={card}>
+              <div className={microLabel}>Velocity</div>
+              <div className="text-2xl font-black text-gray-900 dark:text-white">{detail.velocity ?? '—'}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{detail.baseline} → {detail.checkpoint ?? '?'} out of 100</div>
+            </div>
+          </div>
+        </>
+      )}
+
+      <div className={card}>
+        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">{isCreate ? 'New trainee' : 'Edit'}</h3>
+        <div className="space-y-3">
+          <div>
+            <label className={labelClass}>Name</label>
+            <input className={inputClass()} value={form.name} onChange={(e) => set('name', e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Phone</label>
+              <input className={inputClass()} value={form.phone} onChange={(e) => set('phone', e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Email</label>
+              <input className={inputClass()} value={form.email} onChange={(e) => set('email', e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label className={labelClass}>Branch / college</label>
+            <input className={inputClass()} value={form.branch} onChange={(e) => set('branch', e.target.value)} />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={labelClass}>Pod</label>
+              <ThemedSelect value={form.pod} onChange={(v) => set('pod', v)}
+                options={PODS.map((p) => ({ value: p, label: `Pod ${p}` }))} />
+            </div>
+            <div>
+              <label className={labelClass}>Baseline (D01)</label>
+              <input className={inputClass()} type="number" min={0} max={100}
+                value={form.baseline} disabled={baselineLocked}
+                onChange={(e) => set('baseline', e.target.value)} />
+              {baselineLocked && <div className="text-xs text-gray-400 mt-1">Locked once set</div>}
+            </div>
+            {!isCreate && (
+              <div>
+                <label className={labelClass}>Status</label>
+                <ThemedSelect value={form.status} onChange={(v) => set('status', v)}
+                  options={STATUSES.map((s) => ({ value: s, label: s }))} />
+              </div>
             )}
           </div>
-          <button className="x" onClick={onClose} aria-label="Close">×</button>
         </div>
 
-        <div style={{ padding: '18px 20px' }}>
-          {error && <div className="alert crit" style={{ marginBottom: 14 }}><span className="ai">!</span><div>{error}</div></div>}
+        <button onClick={save} disabled={saving || !form.name} className={`mt-4 ${btnPrimaryBase}`} style={primaryStyle(getThemeColor())}>
+          {saving ? 'Saving…' : isCreate ? 'Add trainee' : 'Save changes'}
+        </button>
+      </div>
 
-          {!isCreate && detail && (
-            <>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-                <BandChip band={detail.band} />
-                <span className="sub" style={{ margin: 0 }}>Site buddy: {detail.buddy ?? '—'}</span>
-              </div>
-              <div className="grid g2" style={{ marginBottom: 16 }}>
-                <div className="card">
-                  <div className="lbl">Checkpoint</div>
-                  <div className="big">{detail.checkpoint ?? '—'}</div>
-                  <div className="sub">
-                    {detail.checkpoint != null
-                      ? `Written ${detail.written} + Practical ${detail.practical} + Behavioural ${detail.behavioural}`
-                      : 'Not yet assessed'}
-                  </div>
-                </div>
-                <div className="card">
-                  <div className="lbl">Velocity</div>
-                  <div className="big">{detail.velocity ?? '—'}</div>
-                  <div className="sub">{detail.baseline} → {detail.checkpoint ?? '?'} out of 100</div>
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="card" style={{ marginBottom: 16 }}>
-            <h3>{isCreate ? 'New trainee' : 'Edit'}</h3>
-            <div className="lbl" style={{ marginTop: 8 }}>Name</div>
-            <input className="sel" style={{ width: '100%' }} value={form.name} onChange={(e) => set('name', e.target.value)} />
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-              <div style={{ flex: 1 }}>
-                <div className="lbl">Phone</div>
-                <input className="sel" style={{ width: '100%' }} value={form.phone} onChange={(e) => set('phone', e.target.value)} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div className="lbl">Email</div>
-                <input className="sel" style={{ width: '100%' }} value={form.email} onChange={(e) => set('email', e.target.value)} />
-              </div>
-            </div>
-
-            <div className="lbl" style={{ marginTop: 10 }}>Branch / college</div>
-            <input className="sel" style={{ width: '100%' }} value={form.branch} onChange={(e) => set('branch', e.target.value)} />
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-              <div>
-                <div className="lbl">Pod</div>
-                <select className="sel" value={form.pod} onChange={(e) => set('pod', e.target.value)}>
-                  {PODS.map((p) => <option key={p} value={p}>Pod {p}</option>)}
-                </select>
-              </div>
-              <div>
-                <div className="lbl">Baseline (D01)</div>
-                <input className="sel" type="number" min={0} max={100} style={{ width: 80 }}
-                  value={form.baseline} disabled={baselineLocked}
-                  onChange={(e) => set('baseline', e.target.value)} />
-                {baselineLocked && <div className="sub" style={{ margin: '4px 0 0' }}>Locked once set</div>}
-              </div>
-              {!isCreate && (
-                <div>
-                  <div className="lbl">Status</div>
-                  <select className="sel" value={form.status} onChange={(e) => set('status', e.target.value)}>
-                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            <button className="btn" style={{ marginTop: 16 }} onClick={save} disabled={saving || !form.name}>
-              {saving ? 'Saving…' : isCreate ? 'Add trainee' : 'Save changes'}
-            </button>
+      {!isCreate && detail?.history && (
+        <div className={card}>
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Daily record</h3>
+          <div className="max-h-64 overflow-y-auto custom-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                  <th className="px-3 py-2 text-left">Day</th><th className="px-3 py-2 text-left">Attendance</th>
+                  <th className="px-3 py-2 text-left">Log score</th><th className="px-3 py-2 text-left">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.history.map((h) => (
+                  <tr key={h.code} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                    <td className="px-3 py-2">{h.code} · {h.label}</td>
+                    <td className="px-3 py-2 font-mono">{h.attendance ?? '—'}</td>
+                    <td className="px-3 py-2 font-mono">{h.log_score ?? '—'}</td>
+                    <td className="px-3 py-2 text-gray-500 dark:text-gray-400">{h.log_note || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          {!isCreate && detail?.history && (
-            <div className="card">
-              <h3>Daily record</h3>
-              <div className="tw" style={{ maxHeight: 260, overflowY: 'auto' }}>
-                <table>
-                  <thead><tr><th>Day</th><th>Attendance</th><th>Log score</th><th>Note</th></tr></thead>
-                  <tbody>
-                    {detail.history.map((h) => (
-                      <tr key={h.code}>
-                        <td>{h.code} · {h.label}</td>
-                        <td className="n">{h.attendance ?? '—'}</td>
-                        <td className="n">{h.log_score ?? '—'}</td>
-                        <td className="sub" style={{ margin: 0 }}>{h.log_note || '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
-      </aside>
-    </>
+      )}
+    </Drawer>
   );
 }

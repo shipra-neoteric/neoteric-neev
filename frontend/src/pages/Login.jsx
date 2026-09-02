@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import AlertBanner from '../components/AlertBanner';
+import { btnPrimaryBase, inputClass, label as labelClass, primaryStyle } from '../ui/classes';
 
 function StaffLogin() {
   const { signIn } = useAuth();
@@ -23,19 +26,19 @@ function StaffLogin() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      {error && <div className="alert crit" style={{ marginBottom: 12 }}><span className="ai">!</span><div>{error}</div></div>}
-      <div className="lbl">Email</div>
-      <input className="sel" type="email" autoComplete="username" required
-        style={{ width: '100%', marginBottom: 12 }}
-        value={email} onChange={(e) => setEmail(e.target.value)} />
-      <div className="lbl">Password</div>
-      <input className="sel" type="password" autoComplete="current-password" required
-        style={{ width: '100%', marginBottom: 16 }}
-        value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button className="btn" style={{ width: '100%' }} type="submit" disabled={loading}>
-        {loading ? 'Signing in…' : 'Sign in'}
-      </button>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <AlertBanner level="crit">{error}</AlertBanner>}
+      <div>
+        <label className={labelClass}>Email</label>
+        <input className={inputClass()} type="email" autoComplete="username" required
+          value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <div>
+        <label className={labelClass}>Password</label>
+        <input className={inputClass()} type="password" autoComplete="current-password" required
+          value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+      <PrimaryButton loading={loading}>{loading ? 'Signing in…' : 'Sign in'}</PrimaryButton>
     </form>
   );
 }
@@ -79,44 +82,50 @@ function TraineeLogin() {
 
   if (step === 'phone') {
     return (
-      <form onSubmit={handleRequest}>
-        {error && <div className="alert crit" style={{ marginBottom: 12 }}><span className="ai">!</span><div>{error}</div></div>}
-        <div className="lbl">Phone number</div>
-        <input className="sel" type="tel" required autoFocus
-          style={{ width: '100%', marginBottom: 16 }}
-          value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <button className="btn" style={{ width: '100%' }} type="submit" disabled={loading}>
-          {loading ? 'Sending…' : 'Send code'}
-        </button>
+      <form onSubmit={handleRequest} className="space-y-4">
+        {error && <AlertBanner level="crit">{error}</AlertBanner>}
+        <div>
+          <label className={labelClass}>Phone number</label>
+          <input className={inputClass()} type="tel" required autoFocus
+            value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <PrimaryButton loading={loading}>{loading ? 'Sending…' : 'Send code'}</PrimaryButton>
       </form>
     );
   }
 
   return (
-    <form onSubmit={handleVerify}>
-      {error && <div className="alert crit" style={{ marginBottom: 12 }}><span className="ai">!</span><div>{error}</div></div>}
+    <form onSubmit={handleVerify} className="space-y-4">
+      {error && <AlertBanner level="crit">{error}</AlertBanner>}
       {devCode && (
-        <div className="alert info" style={{ marginBottom: 12 }}>
-          <span className="ai">i</span>
-          <div>No SMS provider configured yet — your code is <b>{devCode}</b> (dev mode only).</div>
-        </div>
+        <AlertBanner level="info">No SMS provider configured yet — your code is <b>{devCode}</b> (dev mode only).</AlertBanner>
       )}
-      <div className="lbl">6-digit code sent to {phone}</div>
-      <input className="sel" inputMode="numeric" pattern="[0-9]*" maxLength={6} required autoFocus
-        style={{ width: '100%', marginBottom: 16 }}
-        value={code} onChange={(e) => setCode(e.target.value)} />
-      <button className="btn" style={{ width: '100%', marginBottom: 8 }} type="submit" disabled={loading}>
-        {loading ? 'Verifying…' : 'Verify & sign in'}
-      </button>
-      <button className="btn ghost" style={{ width: '100%' }} type="button" onClick={() => setStep('phone')}>
+      <div>
+        <label className={labelClass}>6-digit code sent to {phone}</label>
+        <input className={inputClass()} inputMode="numeric" pattern="[0-9]*" maxLength={6} required autoFocus
+          value={code} onChange={(e) => setCode(e.target.value)} />
+      </div>
+      <PrimaryButton loading={loading}>{loading ? 'Verifying…' : 'Verify & sign in'}</PrimaryButton>
+      <button type="button" onClick={() => setStep('phone')}
+        className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg px-4 py-2 text-sm font-medium transition-colors">
         Use a different number
       </button>
     </form>
   );
 }
 
+function PrimaryButton({ loading, children }) {
+  const { getThemeColor } = useTheme();
+  return (
+    <button type="submit" disabled={loading} className={`w-full ${btnPrimaryBase}`} style={primaryStyle(getThemeColor())}>
+      {children}
+    </button>
+  );
+}
+
 export default function Login() {
   const { session } = useAuth();
+  const { getThemeColor } = useTheme();
   const location = useLocation();
   const [tab, setTab] = useState('staff');
 
@@ -126,18 +135,28 @@ export default function Login() {
   }
 
   return (
-    <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
-      <div className="card" style={{ width: 'min(360px, 92vw)' }}>
-        <div className="brand" style={{ border: 0, padding: 0, marginBottom: 16 }}>
-          <b>NEEV Tracker</b>
-          <span>Batch 2026-01</span>
+    <div className="min-h-screen grid place-items-center bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6 w-full max-w-[380px]">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+            style={{ backgroundColor: getThemeColor() }}>NT</div>
+          <div>
+            <div className="font-bold text-gray-900 dark:text-white">NEEV Tracker</div>
+            <div className="text-[11px] text-gray-400 dark:text-gray-500">Batch 2026-01</div>
+          </div>
         </div>
-        <div className="chipbar" style={{ marginBottom: 16 }}>
-          <button type="button" className={`chip ${tab === 'staff' ? 'on' : ''}`} style={{ width: 'auto', padding: '5px 12px' }}
-            onClick={() => setTab('staff')}>Staff</button>
-          <button type="button" className={`chip ${tab === 'trainee' ? 'on' : ''}`} style={{ width: 'auto', padding: '5px 12px' }}
-            onClick={() => setTab('trainee')}>Trainee</button>
+
+        <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-900 rounded-lg p-1">
+          {['staff', 'trainee'].map((t) => (
+            <button key={t} type="button" onClick={() => setTab(t)}
+              className={`flex-1 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
+                tab === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' : 'text-gray-500 dark:text-gray-400'
+              }`}>
+              {t}
+            </button>
+          ))}
         </div>
+
         {tab === 'staff' ? <StaffLogin /> : <TraineeLogin />}
       </div>
     </div>

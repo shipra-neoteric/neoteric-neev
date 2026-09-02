@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-
-const DEPT_NAME = { SUP: 'Supervision', QC: 'Quality', MEA: 'Measurement', STR: 'Store' };
+import AlertBanner from '../components/AlertBanner';
+import { DeptBadge } from '../components/StatusBadge';
+import { card } from '../ui/classes';
 
 export default function Rotation() {
   const [rows, setRows] = useState(null);
@@ -11,32 +12,31 @@ export default function Rotation() {
     api.get('/rotations').then(setRows).catch((e) => setError(e.message));
   }, []);
 
-  if (error) return <div className="alert crit"><span className="ai">!</span><div>{error}</div></div>;
-  if (!rows) return <div className="sub">Loading…</div>;
+  if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
+  if (!rows) return <div className="text-sm text-gray-400">Loading…</div>;
 
   const byBlock = {};
   rows.forEach((r) => { (byBlock[r.blockCode] ??= []).push(r); });
 
   return (
     <div>
-      <div className="sub" style={{ marginBottom: 14 }}>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Every pod hosts every department once — one pod inside one department at a time.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Object.entries(byBlock).map(([block, pods]) => (
+          <div key={block} className={card}>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">{block}</h3>
+            <div className="text-xs text-gray-400 mb-2">{pods[0].startsOn} – {pods[0].endsOn}</div>
+            {pods.sort((a, b) => a.pod.localeCompare(b.pod)).map((r) => (
+              <div key={r.pod} className="flex justify-between items-center gap-2 py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <span className="text-sm text-gray-900 dark:text-white">{r.pod}</span>
+                <DeptBadge department={r.department} />
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
-      {Object.entries(byBlock).map(([block, pods]) => (
-        <div key={block} className="card" style={{ marginBottom: 10 }}>
-          <h3>{block}</h3>
-          <div className="sub" style={{ marginBottom: 10 }}>{pods[0].startsOn} – {pods[0].endsOn}</div>
-          {pods.sort((a, b) => a.pod.localeCompare(b.pod)).map((r) => (
-            <div key={r.pod} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
-              padding: '5px 0', borderBottom: '1px solid var(--rule-2)',
-            }}>
-              <span style={{ fontSize: '.89rem', color: 'var(--ink)' }}>{r.pod}</span>
-              <span className={`dt d${r.department}`}>{DEPT_NAME[r.department]}</span>
-            </div>
-          ))}
-        </div>
-      ))}
     </div>
   );
 }

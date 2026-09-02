@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import BandChip from '../components/BandChip';
+import AlertBanner from '../components/AlertBanner';
+import { BandBadge, DEPT_NAME } from '../components/StatusBadge';
+import ThemedSelect from '../components/theme/ThemedSelect';
+import { useTheme } from '../context/ThemeContext';
+import { btnPrimaryBase, inputClass, primaryStyle } from '../ui/classes';
 
 const MAX = { written: 40, practical: 30, behavioural: 30 };
 const DEPTS = ['SUP', 'QC', 'MEA', 'STR'];
-const DEPT_NAME = { SUP: 'Supervision', QC: 'Quality', MEA: 'Measurement', STR: 'Store' };
 const KINDS = [
   { key: 'checkpoint', label: 'Checkpoint' },
   { key: 'drill', label: 'Department drill' },
@@ -24,7 +27,15 @@ function bandOf(baseline, chk) {
   return 'D';
 }
 
+function MarkInput({ max, value, onChange }) {
+  return (
+    <input className={inputClass()} style={{ width: 64 }} type="number" min={0} max={max}
+      value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+  );
+}
+
 export default function Assessment() {
+  const { getThemeColor } = useTheme();
   const [kind, setKind] = useState('checkpoint');
   const [department, setDepartment] = useState('SUP');
   const [rows, setRows] = useState(null);
@@ -79,52 +90,57 @@ export default function Assessment() {
     }
   }
 
-  if (error) return <div className="alert crit"><span className="ai">!</span><div>{error}</div></div>;
-  if (!rows) return <div className="sub">Loading…</div>;
+  if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
+  if (!rows) return <div className="text-sm text-gray-400">Loading…</div>;
 
   return (
     <div>
-      <div className="chipbar" style={{ marginBottom: 14 }}>
+      <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-gray-900 rounded-lg p-1 w-fit">
         {KINDS.map((k) => (
-          <button key={k.key} className={`chip ${kind === k.key ? 'on' : ''}`} style={{ width: 'auto', padding: '5px 12px' }}
-            onClick={() => setKind(k.key)}>{k.label}</button>
+          <button key={k.key} onClick={() => setKind(k.key)}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              kind === k.key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' : 'text-gray-500 dark:text-gray-400'
+            }`}>
+            {k.label}
+          </button>
         ))}
       </div>
 
       {kind === 'drill' && (
-        <div style={{ marginBottom: 14 }}>
-          <div className="lbl">Department</div>
-          <select className="sel" value={department} onChange={(e) => setDepartment(e.target.value)}>
-            {DEPTS.map((d) => <option key={d} value={d}>{DEPT_NAME[d]}</option>)}
-          </select>
+        <div className="mb-4 w-48">
+          <ThemedSelect value={department} onChange={setDepartment}
+            options={DEPTS.map((d) => ({ value: d, label: DEPT_NAME[d] }))} />
         </div>
       )}
 
-      <div className="alert info" style={{ marginBottom: 14 }}>
-        <span className="ai">i</span>
-        <div>{kind === 'checkpoint'
-          ? 'Checkpoint = written (/40) + practical (/30) + behavioural (/30). Velocity and band recompute live below.'
-          : kind === 'drill'
-            ? `Department drill for ${DEPT_NAME[department]} — one mark per trainee per department, doesn't affect their overall band.`
-            : 'Gateway — the Month 5 pass/continue assessment.'}</div>
+      <div className="mb-4">
+        <AlertBanner level="info">
+          {kind === 'checkpoint'
+            ? 'Checkpoint = written (/40) + practical (/30) + behavioural (/30). Velocity and band recompute live below.'
+            : kind === 'drill'
+              ? `Department drill for ${DEPT_NAME[department]} — one mark per trainee per department, doesn't affect their overall band.`
+              : 'Gateway — the Month 5 pass/continue assessment.'}
+        </AlertBanner>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10, gap: 10, alignItems: 'center' }}>
-        {saved && <span className="sub" style={{ margin: 0 }}>Saved</span>}
-        <button className="btn" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save marks'}</button>
+      <div className="flex justify-end items-center gap-3 mb-3">
+        {saved && <span className="text-xs text-gray-500 dark:text-gray-400">Saved</span>}
+        <button onClick={save} disabled={saving} className={btnPrimaryBase} style={primaryStyle(getThemeColor())}>
+          {saving ? 'Saving…' : 'Save marks'}
+        </button>
       </div>
 
-      <div className="tw">
-        <table>
+      <div className="overflow-x-auto custom-horizontal-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+        <table className="w-full text-sm">
           <thead>
-            <tr>
-              <th>Trainee</th>
-              {kind === 'checkpoint' && <th>Baseline</th>}
-              <th style={{ width: 80 }}>Written /40</th>
-              <th style={{ width: 90 }}>Practical /30</th>
-              <th style={{ width: 100 }}>Behavioural /30</th>
-              <th>Total</th>
-              {kind === 'checkpoint' && <><th>Velocity</th><th>Band</th></>}
+            <tr className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+              <th className="px-3 py-2 text-left">Trainee</th>
+              {kind === 'checkpoint' && <th className="px-3 py-2 text-left">Baseline</th>}
+              <th className="px-3 py-2 text-left">Written /40</th>
+              <th className="px-3 py-2 text-left">Practical /30</th>
+              <th className="px-3 py-2 text-left">Behavioural /30</th>
+              <th className="px-3 py-2 text-left">Total</th>
+              {kind === 'checkpoint' && <><th className="px-3 py-2 text-left">Velocity</th><th className="px-3 py-2 text-left">Band</th></>}
             </tr>
           </thead>
           <tbody>
@@ -133,18 +149,15 @@ export default function Assessment() {
                 const chk = (r.written != null && r.practical != null && r.behavioural != null)
                   ? r.written + r.practical + r.behavioural : null;
                 return (
-                  <tr key={r.id}>
-                    <td className="name">{r.name}</td>
-                    <td className="n">{r.baseline}</td>
-                    <td><input className="sel" type="number" min={0} max={MAX.written} style={{ width: 64 }}
-                      value={r.written ?? ''} onChange={(e) => setCheckpointMark(r.id, 'written', e.target.value)} /></td>
-                    <td><input className="sel" type="number" min={0} max={MAX.practical} style={{ width: 64 }}
-                      value={r.practical ?? ''} onChange={(e) => setCheckpointMark(r.id, 'practical', e.target.value)} /></td>
-                    <td><input className="sel" type="number" min={0} max={MAX.behavioural} style={{ width: 64 }}
-                      value={r.behavioural ?? ''} onChange={(e) => setCheckpointMark(r.id, 'behavioural', e.target.value)} /></td>
-                    <td className="n">{chk ?? '—'}</td>
-                    <td className="n">{velocityOf(r.baseline, chk) ?? '—'}</td>
-                    <td><BandChip band={bandOf(r.baseline, chk)} /></td>
+                  <tr key={r.id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                    <td className="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{r.name}</td>
+                    <td className="px-3 py-2 font-mono text-gray-700 dark:text-gray-200">{r.baseline}</td>
+                    <td className="px-3 py-2"><MarkInput max={MAX.written} value={r.written} onChange={(v) => setCheckpointMark(r.id, 'written', v)} /></td>
+                    <td className="px-3 py-2"><MarkInput max={MAX.practical} value={r.practical} onChange={(v) => setCheckpointMark(r.id, 'practical', v)} /></td>
+                    <td className="px-3 py-2"><MarkInput max={MAX.behavioural} value={r.behavioural} onChange={(v) => setCheckpointMark(r.id, 'behavioural', v)} /></td>
+                    <td className="px-3 py-2 font-mono text-gray-700 dark:text-gray-200">{chk ?? '—'}</td>
+                    <td className="px-3 py-2 font-mono text-gray-700 dark:text-gray-200">{velocityOf(r.baseline, chk) ?? '—'}</td>
+                    <td className="px-3 py-2"><BandBadge band={bandOf(r.baseline, chk)} /></td>
                   </tr>
                 );
               }
@@ -152,15 +165,12 @@ export default function Assessment() {
               const total = (m.written != null && m.practical != null && m.behavioural != null)
                 ? m.written + m.practical + m.behavioural : null;
               return (
-                <tr key={r.id}>
-                  <td className="name">{r.name}</td>
-                  <td><input className="sel" type="number" min={0} max={MAX.written} style={{ width: 64 }}
-                    value={m.written ?? ''} onChange={(e) => setOtherMark(r.id, 'written', e.target.value)} /></td>
-                  <td><input className="sel" type="number" min={0} max={MAX.practical} style={{ width: 64 }}
-                    value={m.practical ?? ''} onChange={(e) => setOtherMark(r.id, 'practical', e.target.value)} /></td>
-                  <td><input className="sel" type="number" min={0} max={MAX.behavioural} style={{ width: 64 }}
-                    value={m.behavioural ?? ''} onChange={(e) => setOtherMark(r.id, 'behavioural', e.target.value)} /></td>
-                  <td className="n">{total ?? '—'}</td>
+                <tr key={r.id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                  <td className="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{r.name}</td>
+                  <td className="px-3 py-2"><MarkInput max={MAX.written} value={m.written} onChange={(v) => setOtherMark(r.id, 'written', v)} /></td>
+                  <td className="px-3 py-2"><MarkInput max={MAX.practical} value={m.practical} onChange={(v) => setOtherMark(r.id, 'practical', v)} /></td>
+                  <td className="px-3 py-2"><MarkInput max={MAX.behavioural} value={m.behavioural} onChange={(v) => setOtherMark(r.id, 'behavioural', v)} /></td>
+                  <td className="px-3 py-2 font-mono text-gray-700 dark:text-gray-200">{total ?? '—'}</td>
                 </tr>
               );
             })}

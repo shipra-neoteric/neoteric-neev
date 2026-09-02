@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
+import AlertBanner from '../components/AlertBanner';
+import { useTheme } from '../context/ThemeContext';
+import { btnPrimaryBase, card, inputClass, primaryStyle } from '../ui/classes';
 
 function mondayOf(date) {
   const d = new Date(date);
@@ -12,6 +15,7 @@ function mondayOf(date) {
 
 export default function BuddyRating() {
   const { session } = useAuth();
+  const { getThemeColor } = useTheme();
   const [trainees, setTrainees] = useState(null);
   const [error, setError] = useState(null);
   const [weekStart] = useState(mondayOf(new Date()));
@@ -43,35 +47,45 @@ export default function BuddyRating() {
     }
   }
 
-  if (error) return <div className="alert crit"><span className="ai">!</span><div>{error}</div></div>;
-  if (!trainees) return <div className="sub">Loading…</div>;
+  if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
+  if (!trainees) return <div className="text-sm text-gray-400">Loading…</div>;
 
   return (
     <div>
-      <div className="sub" style={{ marginBottom: 14 }}>Week of {weekStart} — your pod only.</div>
-      {trainees.map((t) => (
-        <div key={t.id} className="card" style={{ marginBottom: 10 }}>
-          <h3>{t.name}</h3>
-          <div className="chipbar" style={{ marginBottom: 8 }}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} className={`chip ${scores[t.id] === n ? 'on' : ''}`}
-                onClick={() => { setScores((s) => ({ ...s, [t.id]: n })); setSaved((s) => ({ ...s, [t.id]: false })); }}>
-                {n}
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Week of {weekStart} — your pod only.</p>
+      <div className="space-y-3">
+        {trainees.map((t) => (
+          <div key={t.id} className={card}>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">{t.name}</h3>
+            <div className="flex gap-1.5 mb-3">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n}
+                  onClick={() => { setScores((s) => ({ ...s, [t.id]: n })); setSaved((s) => ({ ...s, [t.id]: false })); }}
+                  className={`w-8 h-8 text-sm font-semibold rounded-full border transition-colors ${
+                    scores[t.id] === n
+                      ? 'text-white border-transparent'
+                      : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400'
+                  }`}
+                  style={scores[t.id] === n ? { backgroundColor: getThemeColor() } : undefined}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <input className={inputClass()} style={{ marginBottom: 12 }} placeholder="Note (optional)"
+              value={notes[t.id] ?? ''}
+              onChange={(e) => { setNotes((n) => ({ ...n, [t.id]: e.target.value })); setSaved((s) => ({ ...s, [t.id]: false })); }} />
+            <div className="flex items-center gap-3">
+              <button onClick={() => submit(t.id)} disabled={!scores[t.id] || saving === t.id}
+                className={btnPrimaryBase} style={primaryStyle(getThemeColor())}>
+                {saving === t.id ? 'Saving…' : 'Save rating'}
               </button>
-            ))}
+              {saved[t.id] && <span className="text-xs text-gray-500 dark:text-gray-400">Saved</span>}
+            </div>
           </div>
-          <input className="sel" style={{ width: '100%', marginBottom: 8 }} placeholder="Note (optional)"
-            value={notes[t.id] ?? ''}
-            onChange={(e) => { setNotes((n) => ({ ...n, [t.id]: e.target.value })); setSaved((s) => ({ ...s, [t.id]: false })); }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button className="btn" onClick={() => submit(t.id)} disabled={!scores[t.id] || saving === t.id}>
-              {saving === t.id ? 'Saving…' : 'Save rating'}
-            </button>
-            {saved[t.id] && <span className="sub" style={{ margin: 0 }}>Saved</span>}
-          </div>
-        </div>
-      ))}
-      {trainees.length === 0 && <div className="sub">No trainees found for your pod.</div>}
+        ))}
+        {trainees.length === 0 && <div className="text-sm text-gray-400">No trainees found for your pod.</div>}
+      </div>
     </div>
   );
 }

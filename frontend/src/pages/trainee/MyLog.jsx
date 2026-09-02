@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
+import AlertBanner from '../../components/AlertBanner';
+import ThemedSelect from '../../components/theme/ThemedSelect';
+import { useTheme } from '../../context/ThemeContext';
 import { queueLog, syncQueuedLogs } from '../../offline/logQueue';
+import { btnPrimaryBase, card, microLabel, primaryStyle } from '../../ui/classes';
 
 const BATCH_ID = 'b1';
 
@@ -22,6 +26,7 @@ async function postLog(dayId, bodyJson) {
 }
 
 export default function MyLog() {
+  const { getThemeColor } = useTheme();
   const [days, setDays] = useState(null);
   const [dayCode, setDayCode] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -65,33 +70,35 @@ export default function MyLog() {
     }
   }
 
-  if (error) return <div className="alert crit"><span className="ai">!</span><div>{error}</div></div>;
-  if (!days) return <div className="sub">Loading…</div>;
+  if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
+  if (!days) return <div className="text-sm text-gray-400">Loading…</div>;
 
   return (
     <div>
-      <select className="sel" style={{ width: '100%', marginBottom: 14 }}
-        value={dayCode} onChange={(e) => { setDayCode(e.target.value); setStatus(null); }}>
-        {days.map((d) => <option key={d.code} value={d.code}>{d.code} · {d.label}</option>)}
-      </select>
+      <div className="mb-4">
+        <ThemedSelect value={dayCode} onChange={(v) => { setDayCode(v); setStatus(null); }}
+          options={days.map((d) => ({ value: d.code, label: `${d.code} · ${d.label}` }))} />
+      </div>
 
-      {PROMPTS.map((p) => (
-        <div key={p.key} className="card" style={{ marginBottom: 10 }}>
-          <div className="lbl">{p.label}</div>
-          <textarea className="sel" rows={2} style={{ width: '100%', resize: 'vertical' }}
-            value={form[p.key]}
-            onChange={(e) => { setForm((f) => ({ ...f, [p.key]: e.target.value })); setStatus(null); }} />
-        </div>
-      ))}
+      <div className="space-y-3">
+        {PROMPTS.map((p) => (
+          <div key={p.key} className={card}>
+            <div className={microLabel}>{p.label}</div>
+            <textarea rows={2}
+              className="w-full mt-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+              value={form[p.key]}
+              onChange={(e) => { setForm((f) => ({ ...f, [p.key]: e.target.value })); setStatus(null); }} />
+          </div>
+        ))}
+      </div>
 
-      {status === 'saved' && <div className="sub" style={{ marginBottom: 10 }}>Saved — queued for your coordinator to score.</div>}
-      {status === 'queued' && (
-        <div className="alert warn" style={{ marginBottom: 10 }}>
-          <span className="ai">!</span>
-          <div>No connection — saved on your phone. It'll send automatically once you're back online.</div>
-        </div>
-      )}
-      <button className="btn" style={{ width: '100%' }} onClick={save} disabled={saving}>
+      <div className="mt-3 mb-3 space-y-2">
+        {status === 'saved' && <div className="text-xs text-gray-500 dark:text-gray-400">Saved — queued for your coordinator to score.</div>}
+        {status === 'queued' && (
+          <AlertBanner level="warn">No connection — saved on your phone. It'll send automatically once you're back online.</AlertBanner>
+        )}
+      </div>
+      <button onClick={save} disabled={saving} className={`w-full ${btnPrimaryBase}`} style={primaryStyle(getThemeColor())}>
         {saving ? 'Saving…' : 'Submit log'}
       </button>
     </div>
