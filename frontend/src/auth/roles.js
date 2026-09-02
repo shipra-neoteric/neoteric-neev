@@ -1,6 +1,6 @@
 import {
   Award, CheckSquare, ClipboardCheck, FileText, LayoutDashboard,
-  ListChecks, PlayCircle, RefreshCw, Star, Users,
+  ListChecks, PlayCircle, RefreshCw, ShieldCheck, Star, Users,
 } from 'lucide-react';
 
 // Nav visibility per staff role (SPEC.md §4), keyed by the role string the
@@ -9,6 +9,11 @@ import {
 // logged-in name from the session next to it.
 
 export const ROLES = {
+  admin: {
+    title: 'Administrator',
+    note: 'Full access to everything, including user management and permissions.',
+    nav: ['dashboard', 'daily', 'trainees', 'assessment', 'modules', 'rotation', 'buddyRating', 'reports', 'users'],
+  },
   supervisor: {
     title: 'Training Supervisor',
     note: 'Owner. Full access: assessments, bands, department allotment, and the Saturday review pack.',
@@ -40,6 +45,7 @@ export const NAV = [
   { key: 'rotation', icon: RefreshCw, label: 'Rotation', path: '/rotation' },
   { key: 'buddyRating', icon: Star, label: 'Weekly rating', path: '/buddy-rating' },
   { key: 'reports', icon: FileText, label: 'Monthly pack', path: '/reports' },
+  { key: 'users', icon: ShieldCheck, label: 'Users', path: '/users' },
 ];
 
 // Trainee nav lives in a separate mobile-first shell (TraineeShell), not the staff

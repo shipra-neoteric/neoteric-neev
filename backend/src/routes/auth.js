@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import Otp from '../models/Otp.js';
 import Person from '../models/Person.js';
 import Trainee from '../models/Trainee.js';
+import { resolveAllPermissions } from '../permissions/defaults.js';
 import { sendOtp } from '../services/sms.js';
 
 const router = Router();
@@ -24,7 +25,10 @@ router.post('/login', async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: '12h' },
     );
-    res.json({ token, name: person.name, role: person.role });
+    res.json({
+      token, id: person._id.toString(), name: person.name, role: person.role,
+      permissions: resolveAllPermissions(person),
+    });
   } catch (e) {
     next(e);
   }

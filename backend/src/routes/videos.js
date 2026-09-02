@@ -2,14 +2,14 @@ import { Router } from 'express';
 import Trainee from '../models/Trainee.js';
 import Video from '../models/Video.js';
 import VideoProgress from '../models/VideoProgress.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission, requireRole } from '../middleware/auth.js';
 import { extractYoutubeId, fetchDuration, fetchOEmbed } from '../services/youtube.js';
 
 const router = Router();
 
 // POST /api/videos — {module_id, url} — Rajat/Deepti add (SPEC.md §4 & §5).
 // Store the ID, never the full URL.
-router.post('/', requireRole('coordinator', 'supervisor'), async (req, res, next) => {
+router.post('/', requirePermission('content', 'create'), async (req, res, next) => {
   try {
     const { module_id, url } = req.body;
     if (!module_id || !url) return res.status(400).json({ error: 'module_id and url required' });
@@ -34,7 +34,7 @@ router.post('/', requireRole('coordinator', 'supervisor'), async (req, res, next
 });
 
 // PUT /api/videos/:id/approve — Deepti only, suggested → linked (SPEC.md §4 & §5).
-router.put('/:id/approve', requireRole('supervisor'), async (req, res, next) => {
+router.put('/:id/approve', requirePermission('content', 'approve'), async (req, res, next) => {
   try {
     const video = await Video.findByIdAndUpdate(
       req.params.id,
@@ -43,6 +43,18 @@ router.put('/:id/approve', requireRole('supervisor'), async (req, res, next) => 
     );
     if (!video) return res.status(404).json({ error: 'unknown video' });
     res.json(video);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE /api/videos/:id
+router.delete('/:id', requirePermission('content', 'delete'), async (req, res, next) => {
+  try {
+    await VideoProgress.deleteMany({ video: req.params.id });
+    const deleted = await Video.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'unknown video' });
+    res.status(204).end();
   } catch (e) {
     next(e);
   }

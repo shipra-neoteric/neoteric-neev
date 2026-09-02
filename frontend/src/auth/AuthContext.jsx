@@ -36,8 +36,8 @@ export function AuthProvider({ children }) {
   }
 
   async function signIn(email, password) {
-    const { token, name, role } = await api.login(email, password);
-    persist({ token, name, role });
+    const { token, id, name, role, permissions } = await api.login(email, password);
+    persist({ token, id, name, role, permissions });
   }
 
   async function requestOtp(phone) {
@@ -49,10 +49,19 @@ export function AuthProvider({ children }) {
     persist({ token, name, role, traineeCode });
   }
 
+  // Mirrors the backend's own resolution (permissions/defaults.js) so buttons can be
+  // gated without guessing — but the server re-checks everything regardless, this is
+  // purely for not showing controls a click would just get a 403 from.
+  function can(moduleKey, action) {
+    return !!session?.permissions?.[moduleKey]?.[action];
+  }
+
   const value = {
     session,
     role: session ? ROLES[session.role] : null,
     isTrainee: session?.role === 'trainee',
+    isAdmin: session?.role === 'admin',
+    can,
     signIn,
     requestOtp,
     verifyOtp,

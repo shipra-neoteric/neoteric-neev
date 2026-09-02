@@ -1,9 +1,10 @@
-import { ChevronRight, Play } from 'lucide-react';
+import { ChevronRight, FileText, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import AlertBanner from '../../components/AlertBanner';
 import { DeptBadge } from '../../components/StatusBadge';
 import YouTubePlayer from '../../components/YouTubePlayer';
+import { insetPanel } from '../../ui/classes';
 
 export default function Today() {
   const [modules, setModules] = useState(null);
@@ -40,8 +41,21 @@ export default function Today() {
               </button>
               {open && (
                 <div className="px-4 pb-4">
+                  {m.notes?.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {m.notes.map((n) => (
+                        <div key={n._id} className={`${insetPanel} flex items-start gap-2.5`}>
+                          <FileText className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white">{n.title}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{n.body}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {m.videos.filter((v) => v.status === 'linked').length === 0
-                    ? <div className="text-sm text-gray-400">No videos linked yet.</div>
+                    ? (m.notes?.length ?? 0) === 0 && <div className="text-sm text-gray-400">No content yet.</div>
                     : (
                       <div className="grid grid-cols-2 gap-3">
                         {m.videos.filter((v) => v.status === 'linked').map((v) => (

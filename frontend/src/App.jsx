@@ -11,6 +11,7 @@ import Reports from './pages/Reports';
 import Modules from './pages/Modules';
 import Rotation from './pages/Rotation';
 import BuddyRating from './pages/BuddyRating';
+import Users from './pages/Users';
 import Today from './pages/trainee/Today';
 import MyLog from './pages/trainee/MyLog';
 import MyBand from './pages/trainee/MyBand';
@@ -30,6 +31,7 @@ function App() {
           <Route path="/rotation" element={<Rotation />} />
           <Route path="/buddy-rating" element={<BuddyRating />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/users" element={<Users />} />
         </Route>
         <Route element={<TraineeShell />}>
           <Route path="/t/today" element={<Today />} />

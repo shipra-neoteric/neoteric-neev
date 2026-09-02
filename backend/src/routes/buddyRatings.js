@@ -2,13 +2,13 @@ import { Router } from 'express';
 import BuddyRating from '../models/BuddyRating.js';
 import Pod from '../models/Pod.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/auth.js';
 
 const router = Router();
 
 // POST /api/buddy-ratings — {trainee_id, weekStart, score, note} — buddy, own pod only
 // (SPEC.md §4: "Weekly buddy rating | | own pod | | ✓ |" — Deepti can also enter one).
-router.post('/', requireRole('buddy', 'supervisor'), async (req, res, next) => {
+router.post('/', requirePermission('buddyRating', 'create'), async (req, res, next) => {
   try {
     const { trainee_id, weekStart, score, note } = req.body;
     if (!trainee_id || !weekStart || !(score >= 1 && score <= 5)) {
@@ -36,7 +36,7 @@ router.post('/', requireRole('buddy', 'supervisor'), async (req, res, next) => {
 });
 
 // GET /api/buddy-ratings?trainee=T01
-router.get('/', requireRole('buddy', 'coordinator', 'supervisor'), async (req, res, next) => {
+router.get('/', requirePermission('buddyRating', 'view'), async (req, res, next) => {
   try {
     const trainee = await Trainee.findOne({ code: req.query.trainee });
     if (!trainee) return res.json([]);

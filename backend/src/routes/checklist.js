@@ -3,7 +3,7 @@ import { Router } from 'express';
 import ChecklistItem from '../models/ChecklistItem.js';
 import Pod from '../models/Pod.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission, requireRole } from '../middleware/auth.js';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -61,7 +61,7 @@ router.get('/me', requireRole('trainee'), async (req, res, next) => {
 });
 
 // GET /api/checklist/:code — staff view of one trainee's checklist
-router.get('/:code', requireRole('buddy', 'coordinator', 'supervisor'), async (req, res, next) => {
+router.get('/:code', requirePermission('checklist', 'view'), async (req, res, next) => {
   try {
     const trainee = await Trainee.findOne({ code: req.params.code });
     if (!trainee) return res.status(404).json({ error: 'unknown trainee' });
@@ -100,7 +100,7 @@ router.post('/:index/evidence', requireRole('trainee'), async (req, res, next) =
 
 // PUT /api/checklist/:code/:index/sign — buddy (own pod), coordinator or supervisor
 // (SPEC.md §4: "Sign a checklist item | | own pod | ✓ | ✓ |").
-router.put('/:code/:index/sign', requireRole('buddy', 'coordinator', 'supervisor'), async (req, res, next) => {
+router.put('/:code/:index/sign', requirePermission('checklist', 'edit'), async (req, res, next) => {
   try {
     const index = Number(req.params.index);
     if (!validIndex(index)) return res.status(400).json({ error: 'invalid item index' });

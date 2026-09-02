@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import DailyLog from '../models/DailyLog.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
 // PUT /api/logs/bulk — [{trainee_id, day_id, score, note}], staff scoring the daily
 // entry grid in front of the trainee at 17:30 (SPEC.md §7 v1).
 // "Score and sign a daily log" is Rajat/Deepti only (SPEC.md §4).
-router.put('/bulk', requireRole('coordinator', 'supervisor'), async (req, res, next) => {
+router.put('/bulk', requirePermission('daily', 'edit'), async (req, res, next) => {
   try {
     const entries = req.body;
     if (!Array.isArray(entries)) return res.status(400).json({ error: 'expected an array' });

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Assessment from '../models/Assessment.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/auth.js';
 
 const router = Router();
 const MAX = { written: 40, practical: 30, behavioural: 30 };
@@ -17,7 +17,7 @@ function inRange(value, max) {
 // trainee gets one drill mark per department (SPEC.md §2's assessment.kind, extended
 // per README's per-department drill weighting). "Enter assessment marks" is Deepti-only
 // for every kind (SPEC.md §4 has a single row covering all of them).
-router.put('/:kind/bulk', requireRole('supervisor'), async (req, res, next) => {
+router.put('/:kind/bulk', requirePermission('assessment', 'edit'), async (req, res, next) => {
   try {
     const { kind } = req.params;
     if (!KINDS.has(kind)) return res.status(400).json({ error: `unknown assessment kind: ${kind}` });

@@ -1,8 +1,10 @@
-import { User } from 'lucide-react';
+import { Trash2, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { btnPrimaryBase, card, inputClass, label as labelClass, microLabel, primaryStyle } from '../ui/classes';
+import { btn, btnPrimaryBase, card, inputClass, label as labelClass, microLabel, primaryStyle } from '../ui/classes';
+import { confirmDelete } from '../ui/confirm';
 import AlertBanner from './AlertBanner';
 import { BandBadge } from './StatusBadge';
 import Drawer from './Drawer';
@@ -15,6 +17,7 @@ const emptyForm = { name: '', phone: '', email: '', branch: '', pod: 1, baseline
 
 export default function TraineeDrawer({ code, onClose, onSaved }) {
   const { getThemeColor } = useTheme();
+  const { can } = useAuth();
   const isCreate = !code;
   const [detail, setDetail] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -66,6 +69,19 @@ export default function TraineeDrawer({ code, onClose, onSaved }) {
   }
 
   const baselineLocked = !isCreate && detail?.baseline != null;
+
+  async function remove() {
+    if (!(await confirmDelete(detail?.name ?? code))) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await api.delete(`/trainees/${code}`);
+      onSaved();
+    } catch (e) {
+      setError(e.message);
+      setSaving(false);
+    }
+  }
 
   return (
     <Drawer
@@ -145,9 +161,16 @@ export default function TraineeDrawer({ code, onClose, onSaved }) {
           </div>
         </div>
 
-        <button onClick={save} disabled={saving || !form.name} className={`mt-4 ${btnPrimaryBase}`} style={primaryStyle(getThemeColor())}>
-          {saving ? 'Saving…' : isCreate ? 'Add trainee' : 'Save changes'}
-        </button>
+        <div className="flex items-center gap-3 mt-4">
+          <button onClick={save} disabled={saving || !form.name} className={btnPrimaryBase} style={primaryStyle(getThemeColor())}>
+            {saving ? 'Saving…' : isCreate ? 'Add trainee' : 'Save changes'}
+          </button>
+          {!isCreate && can('trainees', 'delete') && (
+            <button onClick={remove} disabled={saving} className={`${btn.danger} flex items-center gap-1.5`}>
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          )}
+        </div>
       </div>
 
       {!isCreate && detail?.history && (

@@ -5,7 +5,7 @@ import DailyLog from '../models/DailyLog.js';
 import Day from '../models/Day.js';
 import Person from '../models/Person.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/auth.js';
 import { writeMonthlyPack } from '../reports/monthlyPack.js';
 import { band, getCheckpoint, logAvg, podNumber, velocity } from '../services/traineeStats.js';
 
@@ -142,7 +142,7 @@ router.get('/:id/days', async (req, res, next) => {
 
 // GET /api/batches/:id/report?month=YYYY-MM — the monthly pack, as a PDF
 // "Export the monthly pack" is Rajat/Deepti/Bharti (SPEC.md §4).
-router.get('/:id/report', requireRole('coordinator', 'supervisor', 'office'), async (req, res, next) => {
+router.get('/:id/report', requirePermission('reports', 'view'), async (req, res, next) => {
   try {
     const batch = await findBatch(req.params.id);
     if (!batch) return res.status(404).json({ error: 'unknown batch' });

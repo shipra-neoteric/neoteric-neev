@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Attendance from '../models/Attendance.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/auth.js';
 
 const router = Router();
 const VALID = new Set(['P', 'A', 'L', 'H']);
@@ -10,7 +10,7 @@ const VALID = new Set(['P', 'A', 'L', 'H']);
 // (SPEC.md §3: twelve separate requests over site 4G fail halfway and leave the grid
 // inconsistent — validate everything before writing anything).
 // "Mark attendance" is Rajat/Deepti only (SPEC.md §4).
-router.put('/bulk', requireRole('coordinator', 'supervisor'), async (req, res, next) => {
+router.put('/bulk', requirePermission('daily', 'edit'), async (req, res, next) => {
   try {
     const entries = req.body;
     if (!Array.isArray(entries)) return res.status(400).json({ error: 'expected an array' });

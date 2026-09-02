@@ -67,6 +67,24 @@ const IMMERSION = [
   ['Catch-up week', '2026-12-25', '2026-12-31', ['STR', 'SUP', 'QC', 'MEA']],
 ];
 
+// The one real account seeded on boot — everything else (Deepti/Rajat/Bharti/buddies
+// below) is still placeholder dev data. Log in with this, then use the Users admin
+// panel to create real accounts with real passwords for everyone else. The password
+// comes from an env var (never committed) — same pattern as JWT_SECRET/MONGO_URL.
+const ADMIN_EMAIL = 'shipra@neotericgrp.in';
+
+async function seedAdminIfMissing() {
+  const exists = await Person.findOne({ email: ADMIN_EMAIL });
+  if (exists) return;
+  if (!process.env.ADMIN_SEED_PASSWORD) {
+    console.warn('ADMIN_SEED_PASSWORD is not set — skipping initial admin seed');
+    return;
+  }
+  const passwordHash = await bcrypt.hash(process.env.ADMIN_SEED_PASSWORD, 10);
+  await Person.create({ name: 'Shipra', email: ADMIN_EMAIL, role: 'admin', passwordHash });
+  console.log(`Seeded real admin login: ${ADMIN_EMAIL} — change this password after first login`);
+}
+
 // Dev-only staff logins — SPEC.md §1 wants real email+password for staff, but there's
 // no admin screen yet to create/reset accounts, so these are seeded once. Rotate the
 // passwords (or replace with real accounts) before this is used for real.
@@ -157,6 +175,7 @@ async function seedRotationIfEmpty() {
 }
 
 export async function seedIfEmpty() {
+  await seedAdminIfMissing();
   await seedStaffIfMissing();
   await seedBatchIfEmpty();
   await backfillBuddyLogins();

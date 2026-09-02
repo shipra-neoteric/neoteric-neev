@@ -12,3 +12,15 @@ export async function confirmSignOut() {
   });
   return isConfirmed;
 }
+
+export async function confirmDelete(label) {
+  const { isConfirmed } = await Swal.fire({
+    title: `Delete ${label}?`,
+    text: 'This cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Delete',
+    confirmButtonColor: '#dc2626',
+  });
+  return isConfirmed;
+}

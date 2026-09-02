@@ -1,11 +1,15 @@
 import { Router } from 'express';
+import Assessment from '../models/Assessment.js';
 import Attendance from '../models/Attendance.js';
+import BuddyRating from '../models/BuddyRating.js';
+import ChecklistItem from '../models/ChecklistItem.js';
 import DailyLog from '../models/DailyLog.js';
 import Day from '../models/Day.js';
 import Person from '../models/Person.js';
 import Pod from '../models/Pod.js';
 import Trainee from '../models/Trainee.js';
-import { requireRole } from '../middleware/auth.js';
+import VideoProgress from '../models/VideoProgress.js';
+import { requirePermission, requireRole } from '../middleware/auth.js';
 import { attPct, band, getCheckpoint, logAvg, podNumber, velocity } from '../services/traineeStats.js';
 
 const router = Router();
@@ -45,7 +49,7 @@ async function nextCode() {
 }
 
 // GET /api/trainees?pod= — the batch roster (staff only, SPEC.md §4)
-router.get('/', requireRole('coordinator', 'supervisor', 'office', 'buddy'), async (req, res, next) => {
+router.get('/', requirePermission('trainees', 'view'), async (req, res, next) => {
   try {
     const { pod } = req.query;
     const filter = {};
@@ -96,7 +100,7 @@ router.get('/me', requireRole('trainee'), async (req, res, next) => {
 
 // GET /api/trainees/:code — full profile + day-by-day history, for the detail drawer
 // (staff only — a trainee sees their own via /me, not anyone else's, SPEC.md §4)
-router.get('/:code', requireRole('coordinator', 'supervisor', 'office', 'buddy'), async (req, res, next) => {
+router.get('/:code', requirePermission('trainees', 'view'), async (req, res, next) => {
   try {
     const t = await Trainee.findOne({ code: req.params.code })
       .populate('person').populate('pod').populate('buddy').lean();
@@ -109,7 +113,7 @@ router.get('/:code', requireRole('coordinator', 'supervisor', 'office', 'buddy')
 
 // POST /api/trainees — trainee master: add a new trainee. Rajat/Deepti/Bharti (README:
 // "who owns what" — all three touch trainee records).
-router.post('/', requireRole('coordinator', 'supervisor', 'office'), async (req, res, next) => {
+router.post('/', requirePermission('trainees', 'create'), async (req, res, next) => {
   try {
     const { name, phone, email, branch, pod, baseline } = req.body;
     if (!name || !pod) return res.status(400).json({ error: 'name and pod are required' });
@@ -138,7 +142,7 @@ router.post('/', requireRole('coordinator', 'supervisor', 'office'), async (req,
 });
 
 // PUT /api/trainees/:code — trainee master: edit. Baseline is write-once (SPEC.md §8).
-router.put('/:code', requireRole('coordinator', 'supervisor', 'office'), async (req, res, next) => {
+router.put('/:code', requirePermission('trainees', 'edit'), async (req, res, next) => {
   try {
     const t = await Trainee.findOne({ code: req.params.code });
     if (!t) return res.status(404).json({ error: 'unknown trainee' });
@@ -171,6 +175,30 @@ router.put('/:code', requireRole('coordinator', 'supervisor', 'office'), async (
 
     const full = await Trainee.findById(t._id).populate('person').populate('pod').populate('buddy').lean();
     res.json(await serializeTrainee(full));
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE /api/trainees/:code — hard delete, cascading every record tied to them.
+// Admin-only by default (permissions/defaults.js: delete defaults to false everywhere
+// until explicitly granted through the Users admin panel).
+router.delete('/:code', requirePermission('trainees', 'delete'), async (req, res, next) => {
+  try {
+    const t = await Trainee.findOne({ code: req.params.code });
+    if (!t) return res.status(404).json({ error: 'unknown trainee' });
+
+    await Promise.all([
+      Attendance.deleteMany({ trainee: t._id }),
+      DailyLog.deleteMany({ trainee: t._id }),
+      Assessment.deleteMany({ trainee: t._id }),
+      ChecklistItem.deleteMany({ trainee: t._id }),
+      VideoProgress.deleteMany({ trainee: t._id }),
+      BuddyRating.deleteMany({ trainee: t._id }),
+    ]);
+    await Person.findByIdAndDelete(t.person);
+    await Trainee.findByIdAndDelete(t._id);
+    res.status(204).end();
   } catch (e) {
     next(e);
   }
