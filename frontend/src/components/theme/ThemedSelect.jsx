@@ -26,15 +26,25 @@ export default function ThemedSelect({ value, onChange, options, placeholder = '
       if (triggerRef.current?.contains(e.target) || popupRef.current?.contains(e.target)) return;
       setOpen(false);
     }
+    function onResize() {
+      setOpen(false); // cached position would otherwise go stale (e.g. orientation change)
+    }
     document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
+    window.addEventListener('resize', onResize);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      window.removeEventListener('resize', onResize);
+    };
   }, [open]);
 
   function toggle() {
     if (!open) {
       const r = triggerRef.current.getBoundingClientRect();
       const openUpward = window.innerHeight - r.bottom < 250 && r.top > 250;
-      setRect({ top: r.top, bottom: r.bottom, left: r.left, width: r.width, openUpward });
+      const margin = 8;
+      const width = Math.min(Math.max(r.width, 180), window.innerWidth - margin * 2);
+      const left = Math.min(Math.max(r.left, margin), window.innerWidth - width - margin);
+      setRect({ top: r.top, bottom: r.bottom, left, width, openUpward });
       setQuery('');
     }
     setOpen((o) => !o);
