@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 
-// Text content alongside a module's videos — same idea as a video, but written
-// instead of linked. Trainees view these read-only in the Today screen.
+// A file attachment (PDF/DOC/image) alongside a module's videos. `body` is legacy —
+// notes created before attachments existed were plain text; kept so old ones still
+// render. Trainees view these read-only on the Today screen.
 const moduleNoteSchema = new mongoose.Schema({
   module: { type: mongoose.Schema.Types.ObjectId, ref: 'Module', required: true },
   title: { type: String, required: true },
-  body: { type: String, required: true },
+  fileUrl: String,
+  fileName: String,
+  fileType: String,
+  body: String,
   addedBy: String,
   createdAt: { type: Date, default: Date.now },
 });

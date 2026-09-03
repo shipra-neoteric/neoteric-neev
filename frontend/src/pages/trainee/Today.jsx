@@ -1,10 +1,16 @@
-import { ChevronRight, FileText, Play } from 'lucide-react';
+import { ChevronRight, FileText, Image as ImageIcon, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client';
 import AlertBanner from '../../components/AlertBanner';
 import { DeptBadge } from '../../components/StatusBadge';
 import YouTubePlayer from '../../components/YouTubePlayer';
 import { insetPanel } from '../../ui/classes';
+
+function fileIcon(fileType, fileName) {
+  const ext = (fileName ?? '').split('.').pop()?.toLowerCase();
+  if (fileType?.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) return ImageIcon;
+  return FileText;
+}
 
 export default function Today() {
   const [modules, setModules] = useState(null);
@@ -43,15 +49,20 @@ export default function Today() {
                 <div className="px-4 pb-4">
                   {m.notes?.length > 0 && (
                     <div className="space-y-2 mb-3">
-                      {m.notes.map((n) => (
-                        <div key={n._id} className={`${insetPanel} flex items-start gap-2.5`}>
-                          <FileText className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 dark:text-white">{n.title}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{n.body}</div>
-                          </div>
-                        </div>
-                      ))}
+                      {m.notes.map((n) => {
+                        const Icon = n.fileUrl ? fileIcon(n.fileType, n.fileName) : FileText;
+                        return (
+                          <a key={n._id} href={n.fileUrl} target={n.fileUrl ? '_blank' : undefined} rel="noreferrer"
+                            className={`${insetPanel} flex items-start gap-2.5 ${n.fileUrl ? 'hover:border-orange-300 dark:hover:border-orange-700 cursor-pointer' : ''}`}>
+                            <Icon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900 dark:text-white">{n.title}</div>
+                              {n.fileName && <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{n.fileName}</div>}
+                              {!n.fileUrl && n.body && <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{n.body}</div>}
+                            </div>
+                          </a>
+                        );
+                      })}
                     </div>
                   )}
                   {m.videos.filter((v) => v.status === 'linked').length === 0

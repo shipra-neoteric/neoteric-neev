@@ -4,15 +4,7 @@ import { api } from '../../api/client';
 import AlertBanner from '../../components/AlertBanner';
 import { useTheme } from '../../context/ThemeContext';
 import { btn } from '../../ui/classes';
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import { fileToDataUrl } from '../../ui/file';
 
 export default function MyChecklist() {
   const { getThemeColor } = useTheme();

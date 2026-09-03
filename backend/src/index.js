@@ -21,9 +21,9 @@ import { requireAuth } from "./middleware/auth.js";
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL }));
-// 10mb limit — checklist photo evidence goes through as a base64 data URL (Cloudinary
-// accepts it directly, no multipart/multer needed).
-app.use(express.json({ limit: "10mb" }));
+// 15mb limit — checklist photo evidence and module attachments (PDF/DOC/image) go
+// through as base64 data URLs (Cloudinary accepts them directly, no multer needed).
+app.use(express.json({ limit: "15mb" }));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

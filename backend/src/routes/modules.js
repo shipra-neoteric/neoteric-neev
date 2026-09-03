@@ -1,9 +1,18 @@
+import { v2 as cloudinary } from 'cloudinary';
 import { Router } from 'express';
 import Module from '../models/Module.js';
 import ModuleNote from '../models/ModuleNote.js';
 import Video from '../models/Video.js';
 import VideoProgress from '../models/VideoProgress.js';
 import { requirePermission, requireRole } from '../middleware/auth.js';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const DEPARTMENTS = ['SUP', 'QC', 'MEA', 'STR'];
 
 const router = Router();
 
@@ -39,16 +48,47 @@ router.get('/', requireRole('trainee', 'buddy', 'coordinator', 'supervisor', 'ad
   }
 });
 
-// POST /api/modules/:id/notes — {title, body} — text content alongside videos.
+// POST /api/modules — create a new module. There was previously no way to add one
+// short of seeding the DB directly.
+router.post('/', requirePermission('content', 'create'), async (req, res, next) => {
+  try {
+    const { code, title, department, sequence, releaseDate } = req.body;
+    if (!code || !title || !department || sequence == null) {
+      return res.status(400).json({ error: 'code, title, department and sequence are required' });
+    }
+    if (!DEPARTMENTS.includes(department)) return res.status(400).json({ error: 'invalid department' });
+    if (await Module.findOne({ code })) return res.status(400).json({ error: `a module with code ${code} already exists` });
+
+    const mod = await Module.create({
+      code, title, department, sequence: Number(sequence),
+      releaseDate: releaseDate ? new Date(releaseDate) : null,
+    });
+    res.status(201).json(mod);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// POST /api/modules/:id/notes — {title, dataUrl, fileName, fileType} — a file
+// attachment (PDF/DOC/image) alongside a module's videos. `dataUrl` is a base64 data
+// URL uploaded straight to Cloudinary, same no-multer pattern as checklist evidence
+// photos (checklist.js). resource_type 'auto' so images/PDFs land as Cloudinary
+// "image" resources and DOC/DOCX land as "raw".
 // Registered ahead of the generic /:id routes below on purpose.
 router.post('/:id/notes', requirePermission('content', 'create'), async (req, res, next) => {
   try {
-    const { title, body } = req.body;
-    if (!title || !body) return res.status(400).json({ error: 'title and body required' });
+    const { title, dataUrl, fileName, fileType } = req.body;
+    if (!title || !dataUrl) return res.status(400).json({ error: 'title and a file are required' });
     const mod = await Module.findById(req.params.id);
     if (!mod) return res.status(404).json({ error: 'unknown module' });
 
-    const note = await ModuleNote.create({ module: mod._id, title, body, addedBy: req.user.name });
+    const upload = await cloudinary.uploader.upload(dataUrl, {
+      folder: `neev/module-notes/${mod.code}`,
+      resource_type: 'auto',
+    });
+    const note = await ModuleNote.create({
+      module: mod._id, title, fileUrl: upload.secure_url, fileName, fileType, addedBy: req.user.name,
+    });
     res.status(201).json(note);
   } catch (e) {
     next(e);
