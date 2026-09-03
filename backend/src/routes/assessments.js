@@ -69,4 +69,28 @@ router.put('/:kind/bulk', requirePermission('assessment', 'edit'), async (req, r
   }
 });
 
+// GET /api/assessments/:code — one trainee's full assessment history (checkpoint,
+// every drill department, gateway). Previously there was no GET route in this file at
+// all — drill/gateway marks could be written but never read back anywhere.
+router.get('/:code', requirePermission('assessment', 'view'), async (req, res, next) => {
+  try {
+    const trainee = await Trainee.findOne({ code: req.params.code });
+    if (!trainee) return res.status(404).json({ error: 'unknown trainee' });
+
+    const records = await Assessment.find({ trainee: trainee._id }).sort('kind department').lean();
+    res.json(records.map((a) => ({
+      kind: a.kind,
+      department: a.department ?? null,
+      written: a.written,
+      practical: a.practical,
+      behavioural: a.behavioural,
+      total: a.total,
+      assessedBy: a.assessedBy ?? null,
+      assessedAt: a.assessedAt ? a.assessedAt.toISOString() : null,
+    })));
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

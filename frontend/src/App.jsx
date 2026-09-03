@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import DailyEntry from './pages/DailyEntry';
 import Trainees from './pages/Trainees';
+import TraineeProfile from './pages/TraineeProfile';
 import Assessment from './pages/Assessment';
 import Reports from './pages/Reports';
 import Modules from './pages/Modules';
@@ -26,6 +27,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/daily" element={<DailyEntry />} />
           <Route path="/trainees" element={<Trainees />} />
+          <Route path="/trainees/:code" element={<TraineeProfile />} />
           <Route path="/assessment" element={<Assessment />} />
           <Route path="/modules" element={<Modules />} />
           <Route path="/rotation" element={<Rotation />} />

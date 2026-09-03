@@ -115,6 +115,8 @@ router.get('/:id/days/:code', async (req, res, next) => {
       attendance: attByTrainee[String(t._id)]?.status ?? null,
       log_score: logByTrainee[String(t._id)]?.score ?? null,
       log_note: logByTrainee[String(t._id)]?.note ?? '',
+      // The trainee's own 6-prompt write-up, so staff aren't scoring blind.
+      log_body: logByTrainee[String(t._id)]?.bodyJson ?? null,
     }));
 
     res.json({

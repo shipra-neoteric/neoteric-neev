@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Fragment, useEffect, useState } from 'react';
 import { api } from '../api/client';
 import AlertBanner from '../components/AlertBanner';
+import DailyLogBody from '../components/DailyLogBody';
 import ThemedSelect from '../components/theme/ThemedSelect';
 import { useTheme } from '../context/ThemeContext';
-import { btnPrimaryBase, inputClass, primaryStyle } from '../ui/classes';
+import { btnPrimaryBase, inputClass, insetPanel, primaryStyle } from '../ui/classes';
 
 const BATCH_ID = 'b1';
 const ATT_CODES = ['P', 'A', 'L', 'H'];
@@ -31,6 +33,7 @@ export default function DailyEntry() {
   const [dayCode, setDayCode] = useState(null);
   const [rows, setRows] = useState(null);
   const [podFilter, setPodFilter] = useState('');
+  const [expanded, setExpanded] = useState(new Set());
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
@@ -57,6 +60,14 @@ export default function DailyEntry() {
       ? { ...r, attendance: r.attendance === status ? null : status }
       : r));
     setSaved(false);
+  }
+
+  function toggleExpand(traineeId) {
+    setExpanded((s) => {
+      const next = new Set(s);
+      if (next.has(traineeId)) next.delete(traineeId); else next.add(traineeId);
+      return next;
+    });
   }
 
   function setLog(traineeId, score) {
@@ -126,45 +137,65 @@ export default function DailyEntry() {
               <th className="px-3 py-2 text-left">Attendance</th>
               <th className="px-3 py-2 text-left">Log quality</th>
               <th className="px-3 py-2 text-left hidden md:table-cell">Note</th>
+              <th className="px-3 py-2 text-left">Write-up</th>
             </tr>
           </thead>
           <tbody>
             {visibleRows.length === 0 && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-sm text-gray-400">No trainees in this pod.</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-sm text-gray-400">No trainees in this pod.</td></tr>
             )}
             {visibleRows.map((r) => (
-              <tr key={r.trainee_id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
-                <td className="px-3 py-2 text-xs font-mono text-gray-400">{r.trainee_id}</td>
-                <td className="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{r.name}</td>
-                <td className="px-3 py-2 text-xs font-mono text-gray-400 hidden sm:table-cell">P{r.pod}</td>
-                <td className="px-3 py-2">
-                  <div className="flex gap-1">
-                    {ATT_CODES.map((a) => (
-                      <Chip key={a} active={r.attendance === a} activeClass={ATT_ON_CLASS[a]} onClick={() => setAtt(r.trainee_id, a)}>{a}</Chip>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex gap-1">
-                    {LOG_SCORES.map((n) => (
-                      <Chip key={n} active={r.log_score === n}
-                        activeClass="text-white border-transparent" onClick={() => setLog(r.trainee_id, n)}
-                        style={r.log_score === n ? { backgroundColor: getThemeColor() } : undefined}>
-                        {n}
-                      </Chip>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-3 py-2 hidden md:table-cell">
-                  <input className={inputClass()} style={{ minWidth: 150 }}
-                    value={r.log_note ?? ''}
-                    onChange={(e) => {
-                      const note = e.target.value;
-                      setRows((rs) => rs.map((x) => x.trainee_id === r.trainee_id ? { ...x, log_note: note } : x));
-                      setSaved(false);
-                    }} />
-                </td>
-              </tr>
+              <Fragment key={r.trainee_id}>
+                <tr className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                  <td className="px-3 py-2 text-xs font-mono text-gray-400">{r.trainee_id}</td>
+                  <td className="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{r.name}</td>
+                  <td className="px-3 py-2 text-xs font-mono text-gray-400 hidden sm:table-cell">P{r.pod}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1">
+                      {ATT_CODES.map((a) => (
+                        <Chip key={a} active={r.attendance === a} activeClass={ATT_ON_CLASS[a]} onClick={() => setAtt(r.trainee_id, a)}>{a}</Chip>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1">
+                      {LOG_SCORES.map((n) => (
+                        <Chip key={n} active={r.log_score === n}
+                          activeClass="text-white border-transparent" onClick={() => setLog(r.trainee_id, n)}
+                          style={r.log_score === n ? { backgroundColor: getThemeColor() } : undefined}>
+                          {n}
+                        </Chip>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 hidden md:table-cell">
+                    <input className={inputClass()} style={{ minWidth: 150 }}
+                      value={r.log_note ?? ''}
+                      onChange={(e) => {
+                        const note = e.target.value;
+                        setRows((rs) => rs.map((x) => x.trainee_id === r.trainee_id ? { ...x, log_note: note } : x));
+                        setSaved(false);
+                      }} />
+                  </td>
+                  <td className="px-3 py-2">
+                    <button type="button" onClick={() => toggleExpand(r.trainee_id)}
+                      disabled={!r.log_body}
+                      className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed">
+                      {expanded.has(r.trainee_id) ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                      {r.log_body ? 'View' : 'None'}
+                    </button>
+                  </td>
+                </tr>
+                {expanded.has(r.trainee_id) && r.log_body && (
+                  <tr className="border-b border-gray-100 dark:border-gray-700 last:border-0">
+                    <td colSpan={7} className="px-3 pb-3">
+                      <div className={insetPanel}>
+                        <DailyLogBody body={r.log_body} />
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>

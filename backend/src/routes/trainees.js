@@ -87,6 +87,9 @@ async function traineeDetail(t) {
     attendance: attByDay[String(d._id)]?.status ?? null,
     log_score: logByDay[String(d._id)]?.score ?? null,
     log_note: logByDay[String(d._id)]?.note ?? '',
+    // The trainee's own 6-prompt reflective write-up — previously written but never
+    // read back anywhere, so staff scored the log blind to what was actually in it.
+    log_body: logByDay[String(d._id)]?.bodyJson ?? null,
   }));
 
   return { ...(await serializeTrainee(t)), history };

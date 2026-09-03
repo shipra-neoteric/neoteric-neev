@@ -1,5 +1,6 @@
-import { Plus, Search } from 'lucide-react';
+import { Pencil, Plus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import AlertBanner from '../components/AlertBanner';
@@ -20,6 +21,7 @@ const STATUS_OPTIONS = [{ value: '', label: 'All statuses' }, ...Object.entries(
 export default function Trainees() {
   const { getThemeColor } = useTheme();
   const { can } = useAuth();
+  const navigate = useNavigate();
   const [trainees, setTrainees] = useState(null);
   const [error, setError] = useState(null);
   const [openCode, setOpenCode] = useState(undefined); // undefined = closed, null = create, "T01" = view/edit
@@ -97,16 +99,17 @@ export default function Trainees() {
               <th className="px-4 py-2.5 text-left hidden md:table-cell">Velocity</th>
               <th className="px-4 py-2.5 text-left hidden md:table-cell">Log avg</th>
               <th className="px-4 py-2.5 text-left hidden lg:table-cell">Attend</th>
+              <th className="px-4 py-2.5 text-left w-10"></th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-gray-400">
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
                 {trainees.length === 0 ? 'No trainees yet.' : 'No trainees match these filters.'}
               </td></tr>
             )}
             {filtered.map((t) => (
-              <tr key={t.id} onClick={() => setOpenCode(t.id)}
+              <tr key={t.id} onClick={() => navigate(`/trainees/${t.id}`)}
                 className="border-b border-gray-100 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                 <td className="px-4 py-3">
                   <div className="font-semibold text-gray-900 dark:text-white">{t.name}</div>
@@ -118,6 +121,12 @@ export default function Trainees() {
                 <td className="px-4 py-3 font-mono text-gray-700 dark:text-gray-200 hidden md:table-cell">{t.velocity ?? '—'}</td>
                 <td className="px-4 py-3 font-mono text-gray-700 dark:text-gray-200 hidden md:table-cell">{t.log_avg != null ? t.log_avg.toFixed(2) : '—'}</td>
                 <td className="px-4 py-3 font-mono text-gray-700 dark:text-gray-200 hidden lg:table-cell">{t.att_pct != null ? `${Math.round(t.att_pct * 100)}%` : '—'}</td>
+                <td className="px-4 py-3">
+                  <button onClick={(e) => { e.stopPropagation(); setOpenCode(t.id); }} title="Quick edit"
+                    className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

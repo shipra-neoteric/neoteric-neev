@@ -60,6 +60,29 @@ router.delete('/:id', requirePermission('content', 'delete'), async (req, res, n
   }
 });
 
+// GET /api/videos/progress/:code — staff view of one trainee's watch progress across
+// every video. VideoProgress was previously write-only — trainees posted it, nobody
+// ever read it back.
+router.get('/progress/:code', requirePermission('content', 'view'), async (req, res, next) => {
+  try {
+    const trainee = await Trainee.findOne({ code: req.params.code });
+    if (!trainee) return res.status(404).json({ error: 'unknown trainee' });
+
+    const progress = await VideoProgress.find({ trainee: trainee._id }).populate('video').lean();
+    res.json(progress.filter((p) => p.video).map((p) => ({
+      videoId: String(p.video._id),
+      title: p.video.title ?? p.video.youtubeId,
+      channel: p.video.channel ?? null,
+      secondsWatched: p.secondsWatched,
+      durationS: p.video.durationS ?? null,
+      pct: p.video.durationS ? Math.min(100, Math.round((p.secondsWatched / p.video.durationS) * 100)) : null,
+      completedAt: p.completedAt ? p.completedAt.toISOString() : null,
+    })));
+  } catch (e) {
+    next(e);
+  }
+});
+
 // POST /api/videos/:id/progress — {seconds} — trainee's own watch progress.
 // Marked completed at 90% of duration, not 100% (SPEC.md §5).
 router.post('/:id/progress', requireRole('trainee'), async (req, res, next) => {

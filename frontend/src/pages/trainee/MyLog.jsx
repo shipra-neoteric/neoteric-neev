@@ -3,21 +3,11 @@ import { api } from '../../api/client';
 import AlertBanner from '../../components/AlertBanner';
 import ThemedSelect from '../../components/theme/ThemedSelect';
 import { useTheme } from '../../context/ThemeContext';
+import { DAILY_LOG_PROMPTS as PROMPTS } from '../../dailyLogPrompts';
 import { queueLog, syncQueuedLogs } from '../../offline/logQueue';
 import { btnPrimaryBase, card, microLabel, primaryStyle } from '../../ui/classes';
 
 const BATCH_ID = 'b1';
-
-// The six daily-log prompts — the shape a 5-quality log needs, per SPEC.md's
-// description: "someone who was not on site could reconstruct the day from it."
-const PROMPTS = [
-  { key: 'work', label: 'What did you work on today?' },
-  { key: 'location', label: 'Where on site? (block / zone / floor)' },
-  { key: 'numbers', label: 'Key numbers or measurements you recorded' },
-  { key: 'problem', label: 'One problem or mistake you saw' },
-  { key: 'question', label: 'One question you asked your site buddy or engineer' },
-  { key: 'tomorrow', label: "Tomorrow's plan" },
-];
 
 const emptyForm = Object.fromEntries(PROMPTS.map((p) => [p.key, '']));
 
