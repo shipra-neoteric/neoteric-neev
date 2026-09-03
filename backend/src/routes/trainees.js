@@ -43,9 +43,15 @@ async function resolvePod(podNum) {
   return Pod.findOne({ name: `Pod ${podNum}` });
 }
 
+// Smallest unused Txx number, not "highest existing + 1" — so deleting trainees
+// actually frees up their number again instead of codes only ever climbing forever
+// (e.g. deleting everyone except the last person created shouldn't leave them
+// permanently labeled T13).
 async function nextCode() {
-  const [last] = await Trainee.find().sort({ code: -1 }).limit(1).lean();
-  const n = last ? parseInt(last.code.slice(1), 10) + 1 : 1;
+  const existing = await Trainee.find().select('code').lean();
+  const used = new Set(existing.map((t) => parseInt(t.code.slice(1), 10)));
+  let n = 1;
+  while (used.has(n)) n++;
   return 'T' + String(n).padStart(2, '0');
 }
 
