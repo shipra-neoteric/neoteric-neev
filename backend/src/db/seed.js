@@ -79,9 +79,13 @@ const IMMERSION = [
 // comes from an env var (never committed) — same pattern as JWT_SECRET/MONGO_URL.
 const ADMIN_EMAIL = 'shipra@neotericgrp.in';
 
+// Checks "does ANY admin exist" — not "does this exact email exist" — so deleting
+// this bootstrap account (once a different real admin exists, or on purpose) stays
+// deleted. Checking by the specific email was the same bug that kept resurrecting
+// the dummy buddies below: freeing up the email just invited the next restart to
+// recreate it.
 async function seedAdminIfMissing() {
-  const exists = await Person.findOne({ email: ADMIN_EMAIL });
-  if (exists) return;
+  if (await Person.countDocuments({ role: 'admin' })) return;
   if (!process.env.ADMIN_SEED_PASSWORD) {
     console.warn('ADMIN_SEED_PASSWORD is not set — skipping initial admin seed');
     return;
@@ -100,10 +104,14 @@ const STAFF = [
   { name: 'Bharti', email: 'bharti@neev.local', role: 'office', password: 'neev2026' },
 ];
 
+// Same fix as the admin/buddy seeds above: gated on "has this role ever been seeded
+// at all", not per-email. Deleting Deepti's dev account (replaced with a real
+// deepti@neotericgrp.in one, say) must not bring deepti@neev.local back on the next
+// restart just because that specific email is free again.
 async function seedStaffIfMissing() {
+  const roles = STAFF.map((s) => s.role);
+  if (await Person.countDocuments({ role: { $in: roles } })) return;
   for (const s of STAFF) {
-    const exists = await Person.findOne({ email: s.email });
-    if (exists) continue;
     const passwordHash = await bcrypt.hash(s.password, 10);
     await Person.create({ name: s.name, email: s.email, role: s.role, passwordHash });
   }
