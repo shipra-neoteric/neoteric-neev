@@ -8,7 +8,7 @@
 // `delete` defaults to false for every role on every module on purpose — nobody but
 // admin can delete anything until explicitly granted.
 
-export const MODULES = ['trainees', 'daily', 'assessment', 'content', 'buddyRating', 'reports', 'checklist', 'users'];
+export const MODULES = ['trainees', 'daily', 'assessment', 'content', 'rotation', 'buddyRating', 'reports', 'checklist', 'users'];
 export const ACTIONS = ['view', 'create', 'edit', 'delete'];
 
 export const ROLE_DEFAULTS = {
@@ -17,6 +17,7 @@ export const ROLE_DEFAULTS = {
     daily: { view: true, create: true, edit: true, delete: false },
     assessment: { view: true, create: true, edit: true, delete: false },
     content: { view: true, create: true, edit: true, delete: false, approve: true },
+    rotation: { view: true, create: true, edit: true, delete: false },
     buddyRating: { view: true, create: true, edit: false, delete: false },
     reports: { view: true, create: false, edit: false, delete: false },
     checklist: { view: true, create: false, edit: true, delete: false },
@@ -27,6 +28,7 @@ export const ROLE_DEFAULTS = {
     daily: { view: true, create: true, edit: true, delete: false },
     assessment: { view: false, create: false, edit: false, delete: false },
     content: { view: true, create: true, edit: true, delete: false, approve: false },
+    rotation: { view: true, create: true, edit: true, delete: false },
     buddyRating: { view: true, create: false, edit: false, delete: false },
     reports: { view: true, create: false, edit: false, delete: false },
     checklist: { view: true, create: false, edit: true, delete: false },
@@ -37,6 +39,7 @@ export const ROLE_DEFAULTS = {
     daily: { view: false, create: false, edit: false, delete: false },
     assessment: { view: false, create: false, edit: false, delete: false },
     content: { view: false, create: false, edit: false, delete: false, approve: false },
+    rotation: { view: false, create: false, edit: false, delete: false },
     buddyRating: { view: false, create: false, edit: false, delete: false },
     reports: { view: true, create: false, edit: false, delete: false },
     checklist: { view: false, create: false, edit: false, delete: false },
@@ -47,6 +50,7 @@ export const ROLE_DEFAULTS = {
     daily: { view: false, create: false, edit: false, delete: false },
     assessment: { view: false, create: false, edit: false, delete: false },
     content: { view: true, create: false, edit: false, delete: false, approve: false },
+    rotation: { view: false, create: false, edit: false, delete: false },
     buddyRating: { view: true, create: true, edit: false, delete: false },
     reports: { view: false, create: false, edit: false, delete: false },
     checklist: { view: true, create: false, edit: true, delete: false },

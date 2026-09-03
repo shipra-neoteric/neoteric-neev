@@ -30,6 +30,7 @@ export default function DailyEntry() {
   const [days, setDays] = useState(null);
   const [dayCode, setDayCode] = useState(null);
   const [rows, setRows] = useState(null);
+  const [podFilter, setPodFilter] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
@@ -88,6 +89,11 @@ export default function DailyEntry() {
   if (!days || !rows) return <div className="text-sm text-gray-400">Loading…</div>;
 
   const done = rows.filter((r) => r.attendance && r.log_score).length;
+  const podOptions = [
+    { value: '', label: 'All pods' },
+    ...[...new Set(rows.map((r) => r.pod))].sort((a, b) => a - b).map((p) => ({ value: String(p), label: `Pod ${p}` })),
+  ];
+  const visibleRows = podFilter ? rows.filter((r) => String(r.pod) === podFilter) : rows;
 
   return (
     <div>
@@ -95,6 +101,9 @@ export default function DailyEntry() {
         <div className="w-56">
           <ThemedSelect value={dayCode} onChange={setDayCode}
             options={days.map((d) => ({ value: d.code, label: `${d.code} · ${d.label}` }))} />
+        </div>
+        <div className="w-32">
+          <ThemedSelect value={podFilter} onChange={setPodFilter} options={podOptions} />
         </div>
         <div className="w-36 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
           <div className="h-full rounded-full" style={{ width: `${(done / rows.length) * 100}%`, backgroundColor: getThemeColor() }} />
@@ -120,7 +129,10 @@ export default function DailyEntry() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {visibleRows.length === 0 && (
+              <tr><td colSpan={6} className="px-3 py-8 text-center text-sm text-gray-400">No trainees in this pod.</td></tr>
+            )}
+            {visibleRows.map((r) => (
               <tr key={r.trainee_id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                 <td className="px-3 py-2 text-xs font-mono text-gray-400">{r.trainee_id}</td>
                 <td className="px-3 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">{r.name}</td>

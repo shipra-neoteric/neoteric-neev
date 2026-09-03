@@ -38,6 +38,7 @@ export default function Assessment() {
   const { getThemeColor } = useTheme();
   const [kind, setKind] = useState('checkpoint');
   const [department, setDepartment] = useState('SUP');
+  const [podFilter, setPodFilter] = useState('');
   const [rows, setRows] = useState(null);
   const [marks, setMarks] = useState({}); // used for drill/gateway — checkpoint reuses rows directly
   const [saving, setSaving] = useState(false);
@@ -93,17 +94,26 @@ export default function Assessment() {
   if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
   if (!rows) return <div className="text-sm text-gray-400">Loading…</div>;
 
+  const podOptions = [
+    { value: '', label: 'All pods' },
+    ...[...new Set(rows.map((r) => r.pod))].sort((a, b) => a - b).map((p) => ({ value: String(p), label: `Pod ${p}` })),
+  ];
+  const visibleRows = podFilter ? rows.filter((r) => String(r.pod) === podFilter) : rows;
+
   return (
     <div>
-      <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-gray-900 rounded-lg p-1 w-fit">
-        {KINDS.map((k) => (
-          <button key={k.key} onClick={() => setKind(k.key)}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              kind === k.key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' : 'text-gray-500 dark:text-gray-400'
-            }`}>
-            {k.label}
-          </button>
-        ))}
+      <div className="flex items-center gap-3 flex-wrap mb-4">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg p-1 w-fit">
+          {KINDS.map((k) => (
+            <button key={k.key} onClick={() => setKind(k.key)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                kind === k.key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' : 'text-gray-500 dark:text-gray-400'
+              }`}>
+              {k.label}
+            </button>
+          ))}
+        </div>
+        <div className="w-32"><ThemedSelect value={podFilter} onChange={setPodFilter} options={podOptions} /></div>
       </div>
 
       {kind === 'drill' && (
@@ -144,7 +154,10 @@ export default function Assessment() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => {
+            {visibleRows.length === 0 && (
+              <tr><td colSpan={kind === 'checkpoint' ? 8 : 5} className="px-3 py-8 text-center text-sm text-gray-400">No trainees in this pod.</td></tr>
+            )}
+            {visibleRows.map((r) => {
               if (kind === 'checkpoint') {
                 const chk = (r.written != null && r.practical != null && r.behavioural != null)
                   ? r.written + r.practical + r.behavioural : null;

@@ -5,6 +5,7 @@ export const MODULES = [
   { key: 'daily', label: 'Daily entry' },
   { key: 'assessment', label: 'Assessment' },
   { key: 'content', label: 'Modules & videos', extra: ['approve'] },
+  { key: 'rotation', label: 'Rotation' },
   { key: 'buddyRating', label: 'Weekly rating' },
   { key: 'reports', label: 'Monthly pack' },
   { key: 'checklist', label: 'Checklist' },

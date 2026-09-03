@@ -3,13 +3,20 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import AlertBanner from '../components/AlertBanner';
+import ThemedSelect from '../components/theme/ThemedSelect';
 import UserDrawer from '../components/UserDrawer';
 import { useTheme } from '../context/ThemeContext';
 import { STAFF_ROLES } from '../permissions';
-import { btnPrimaryBase, inputClass, primaryStyle } from '../ui/classes';
+import { btn, btnPrimaryBase, inputClass, primaryStyle } from '../ui/classes';
 import { confirmDelete } from '../ui/confirm';
 
 const ROLE_LABEL = Object.fromEntries(STAFF_ROLES.map((r) => [r.value, r.label]));
+const ROLE_OPTIONS = [{ value: '', label: 'All roles' }, ...STAFF_ROLES];
+const STATUS_OPTIONS = [
+  { value: '', label: 'All statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+];
 
 export default function Users() {
   const { session } = useAuth();
@@ -17,6 +24,8 @@ export default function Users() {
   const [users, setUsers] = useState(null);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [editing, setEditing] = useState(undefined); // undefined = closed, null = create, user = edit
 
   function reload() {
@@ -46,8 +55,14 @@ export default function Users() {
   if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
   if (!users) return <div className="text-sm text-gray-400">Loading…</div>;
 
-  const filtered = users.filter((u) =>
-    !query || u.name.toLowerCase().includes(query.toLowerCase()) || u.email.toLowerCase().includes(query.toLowerCase()));
+  const filtered = users.filter((u) => {
+    if (query && !u.name.toLowerCase().includes(query.toLowerCase()) && !u.email.toLowerCase().includes(query.toLowerCase())) return false;
+    if (roleFilter && u.role !== roleFilter) return false;
+    if (statusFilter === 'active' && !u.active) return false;
+    if (statusFilter === 'inactive' && u.active) return false;
+    return true;
+  });
+  const filtersActive = query || roleFilter || statusFilter;
 
   return (
     <div>
@@ -57,10 +72,20 @@ export default function Users() {
         </button>
       </div>
 
-      <div className="relative mb-3">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input className={`${inputClass()} pl-9`} placeholder="Search by name or email…"
-          value={query} onChange={(e) => setQuery(e.target.value)} />
+      <div className="flex items-center gap-2.5 flex-wrap mb-3">
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input className={`${inputClass()} pl-9`} placeholder="Search by name or email…"
+            value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <div className="w-44"><ThemedSelect value={roleFilter} onChange={setRoleFilter} options={ROLE_OPTIONS} /></div>
+        <div className="w-36"><ThemedSelect value={statusFilter} onChange={setStatusFilter} options={STATUS_OPTIONS} /></div>
+        {filtersActive && (
+          <button onClick={() => { setQuery(''); setRoleFilter(''); setStatusFilter(''); }} className={`${btn.secondary} text-xs !px-2.5 !py-1.5`}>
+            Clear
+          </button>
+        )}
+        <span className="text-xs text-gray-400 ml-auto">{filtered.length} of {users.length}</span>
       </div>
 
       <div className="overflow-x-auto custom-horizontal-scrollbar border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
@@ -74,6 +99,11 @@ export default function Users() {
             </tr>
           </thead>
           <tbody>
+            {filtered.length === 0 && (
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">
+                {users.length === 0 ? 'No users yet.' : 'No users match these filters.'}
+              </td></tr>
+            )}
             {filtered.map((u) => (
               <tr key={u.id} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                 <td className="px-4 py-3 cursor-pointer" onClick={() => setEditing(u)}>

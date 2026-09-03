@@ -1,4 +1,4 @@
-import { FileText, Image as ImageIcon, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { FileText, Image as ImageIcon, Pencil, Play, Plus, Search, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
@@ -14,6 +14,7 @@ import { fileToDataUrl } from '../ui/file';
 
 const DEPT_OPTIONS = Object.entries(DEPT_NAME).map(([value, label]) => ({ value, label }));
 const EMPTY_MODULE_FORM = { code: '', title: '', department: '', sequence: '', releaseDate: null };
+const DEPT_TABS = [{ value: '', label: 'All' }, ...DEPT_OPTIONS];
 
 function fileIcon(fileType, fileName) {
   const ext = (fileName ?? '').split('.').pop()?.toLowerCase();
@@ -37,6 +38,8 @@ export default function Modules() {
   const [moduleForm, setModuleForm] = useState(EMPTY_MODULE_FORM);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', department: '', sequence: '' });
+  const [deptFilter, setDeptFilter] = useState('');
+  const [query, setQuery] = useState('');
 
   const canAddContent = can('content', 'create');
   const canApprove = can('content', 'approve');
@@ -179,16 +182,38 @@ export default function Modules() {
   if (error) return <AlertBanner level="crit">{error}</AlertBanner>;
   if (!modules) return <div className="text-sm text-gray-400">Loading…</div>;
 
+  const visibleModules = modules.filter((m) => {
+    if (deptFilter && m.department !== deptFilter) return false;
+    if (query && !`${m.code} ${m.title}`.toLowerCase().includes(query.toLowerCase())) return false;
+    return true;
+  });
+
   return (
     <div className="space-y-3">
-      {canAddContent && (
-        <div className="flex justify-end">
+      <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input className={`${inputClass()} pl-9`} placeholder="Search code or title…"
+            value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-900 rounded-lg p-1 w-fit">
+          {DEPT_TABS.map((d) => (
+            <button key={d.value} onClick={() => setDeptFilter(d.value)}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                deptFilter === d.value ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' : 'text-gray-500 dark:text-gray-400'
+              }`}>
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-gray-400 ml-auto">{visibleModules.length} of {modules.length}</span>
+        {canAddContent && (
           <button onClick={() => { setAddingModule((v) => !v); setModuleForm(EMPTY_MODULE_FORM); }}
             className={`${btn.secondary} flex items-center gap-1.5 text-sm`}>
             <Plus className="w-4 h-4" /> Add module
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {addingModule && (
         <div className={`${insetPanel} space-y-2.5`}>
@@ -225,7 +250,10 @@ export default function Modules() {
         </div>
       )}
 
-      {modules.map((m) => (
+      {visibleModules.length === 0 && (
+        <div className="text-center text-sm text-gray-400 py-8">No modules match these filters.</div>
+      )}
+      {visibleModules.map((m) => (
         <div key={m._id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3.5">
           <div className="flex items-center gap-3 mb-2.5 flex-wrap">
             <span className="font-mono text-xs font-semibold text-orange-600 dark:text-orange-400">{m.code}</span>
